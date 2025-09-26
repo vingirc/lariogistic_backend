@@ -164,7 +164,7 @@ module.exports = {
       res.status(200).json({
         success: true,
         data: null,
-        message: 'Usuario eliminado permanentemente con éxito',
+        message: 'Usuario eliminado con éxito',
       });
     } catch (err) {
       next(err);
