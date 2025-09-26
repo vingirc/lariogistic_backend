@@ -71,5 +71,6 @@ router.get('/', (req, res) => {
 router.use('/usuarios', loadRoute('usuariosRoutes'));
 router.use('/auth', loadRoute('authRoutes'));
 router.use('/departamentos', loadRoute('departamentosRoutes'));
+router.use('/historial', loadRoute('historialRoutes'));
 
 module.exports = router;

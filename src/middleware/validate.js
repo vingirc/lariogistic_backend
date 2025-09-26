@@ -144,6 +144,19 @@ const fingerprintAsistenciasSchema = Joi.object({
   }),
 });
 
+// Esquemas para historial
+const historialCreateSchema = Joi.object({
+  idUsuario: Joi.number().integer().required(),
+  idTramite: Joi.number().integer().optional().allow(null),
+  accion: Joi.string().required().max(100).trim(),
+  descripcion: Joi.string().allow(null, '').optional()
+});
+
+const historialUpdateSchema = Joi.object({
+  accion: Joi.string().max(100).trim().optional(),
+  descripcion: Joi.string().allow(null, '').optional()
+}).min(1);
+
 // Esquemas para departamentos
 const departamentoCreateSchema = Joi.object({
   nombre: Joi.string().required().max(50).trim(),
@@ -165,8 +178,8 @@ const validate = (schema) => (req, res, next) => {
     referenciaCreateSchema,
     referenciaUpdateSchema,
   ];
-  const payload = schemasWithIsAdmin.includes(schema) && req.user 
-    ? { ...req.body, isAdmin: req.user.idRol === 1 } 
+  const payload = schemasWithIsAdmin.includes(schema) && req.user
+    ? { ...req.body, isAdmin: req.user.idRol === 1 }
     : req.body;
   const { error } = schema.validate(payload, { abortEarly: false });
   if (error) {
@@ -195,4 +208,6 @@ module.exports = {
   validateFingerprintAsistencias: validate(fingerprintAsistenciasSchema),
   validateDepartamentoCreate: validate(departamentoCreateSchema),
   validateDepartamentoUpdate: validate(departamentoUpdateSchema),
+  validateHistorialCreate: validate(historialCreateSchema),
+  validateHistorialUpdate: validate(historialUpdateSchema),
 };
