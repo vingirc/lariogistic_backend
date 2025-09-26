@@ -46,6 +46,12 @@ const publicLimiter = createRateLimiter({
   message: 'Límite de solicitudes públicas alcanzado, intenta de nuevo más tarde.',
 });
 
+const privateLimiter = createRateLimiter({
+  max: 100,
+  message: 'Límite de solicitudes privadas alcanzado, intenta de nuevo más tarde.',
+  skip: (req) => req.user && req.user.idRol === 1, // Skip for admin users
+});
+
 const adminLimiter = createRateLimiter({
   max: 500,
   message: 'Límite de solicitudes alcanzado, contacte al soporte.',
@@ -80,6 +86,7 @@ module.exports = {
   passwordChangeLimiter,
   refreshLimiter,
   publicLimiter,
+  privateLimiter,
   adminLimiter,
   apiLimiter,
   docsLimiter,

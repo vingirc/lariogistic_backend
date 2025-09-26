@@ -70,5 +70,6 @@ router.get('/', (req, res) => {
 // Cargar rutas
 router.use('/usuarios', loadRoute('usuariosRoutes'));
 router.use('/auth', loadRoute('authRoutes'));
+router.use('/departamentos', loadRoute('departamentosRoutes'));
 
 module.exports = router;

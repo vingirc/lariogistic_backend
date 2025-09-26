@@ -144,6 +144,18 @@ const fingerprintAsistenciasSchema = Joi.object({
   }),
 });
 
+// Esquemas para departamentos
+const departamentoCreateSchema = Joi.object({
+  nombre: Joi.string().required().max(50).trim(),
+  descripcion: Joi.string().max(255).allow(null, '').optional()
+});
+
+const departamentoUpdateSchema = Joi.object({
+  nombre: Joi.string().max(50).trim().optional(),
+  descripcion: Joi.string().max(255).allow(null, '').optional(),
+  estado: Joi.string().valid('activo', 'inactivo').optional()
+}).min(1); // Al menos un campo para actualizar
+
 const validate = (schema) => (req, res, next) => {
   const schemasWithIsAdmin = [
     passwordChangeSchema,
@@ -181,4 +193,6 @@ module.exports = {
   validateFingerprintConfirm: validate(fingerprintConfirmSchema),
   validateFingerprintPaseLista: validate(fingerprintPaseListaSchema),
   validateFingerprintAsistencias: validate(fingerprintAsistenciasSchema),
+  validateDepartamentoCreate: validate(departamentoCreateSchema),
+  validateDepartamentoUpdate: validate(departamentoUpdateSchema),
 };

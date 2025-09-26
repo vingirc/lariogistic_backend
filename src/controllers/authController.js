@@ -45,22 +45,5 @@ module.exports = {
     } catch (err) {
       next(err);
     }
-  },
-
-  googleCallbackMobile: async (req, res, next) => {
-    try {
-      const { code } = req.body;
-      if (!code) {
-        return res.status(400).json({ error: 'Código de autorización requerido', code: 400 });
-      }
-      const userData = await authService.handleGoogleCallback(code);
-      res.json({
-        success: true,
-        data: { accessToken: userData.accessToken, refreshToken: userData.refreshToken, user: userData.user, idUsuario: userData.user.idUsuario },
-        message: 'Inicio de sesión con Google exitoso',
-      });
-    } catch (err) {
-      next(err);
-    }
-  },
+  }
 };
