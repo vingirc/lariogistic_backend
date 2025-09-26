@@ -51,7 +51,7 @@ try {
   app.use(cors({
     origin: process.env.NODE_ENV === 'production'
       ? ['https://your-frontend.com', 'https://your-backend.com', 'https://accounts.google.com']
-      : ['http://localhost:3000', 'http://localhost:5173', 'https://accounts.google.com'],
+      : ['http://localhost:3000', 'http://localhost:4200', 'https://accounts.google.com'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   }));
@@ -65,7 +65,7 @@ try {
         scriptSrc: ["'self'", 'https://cdnjs.cloudflare.com', 'https://cdn.jsdelivr.net'],
         connectSrc: process.env.NODE_ENV === 'production'
           ? ["'self'", 'https://your-frontend.com', 'https://your-backend.com', 'https://accounts.google.com']
-          : ["'self'", 'http://localhost:3000', 'http://localhost:5173', 'https://accounts.google.com'],
+          : ["'self'", 'http://localhost:3000', 'http://localhost:4200', 'https://accounts.google.com'],
         upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
         imgSrc: ["'self'", 'https://res.cloudinary.com', 'data:']
       },
