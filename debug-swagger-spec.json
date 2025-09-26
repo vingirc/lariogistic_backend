@@ -1,0 +1,3985 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Financiera Backend API",
+    "version": "1.0.0",
+    "description": "API for vehicle sales platform. Provides endpoints for user authentication, vehicle references management, user administration, credit application management, and fingerprint/attendance processing."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Versión 1 de la API"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Endpoints for user authentication and session management."
+    },
+    {
+      "name": "Referencias",
+      "description": "Endpoints for managing vehicle references and media."
+    },
+    {
+      "name": "Usuarios",
+      "description": "Endpoints for user management and profile operations."
+    },
+    {
+      "name": "Solicitudes",
+      "description": "Endpoints for managing credit applications."
+    },
+    {
+      "name": "Huellas",
+      "description": "Endpoints for managing fingerprint registration and verification."
+    },
+    {
+      "name": "Asistencia",
+      "description": "Endpoints for processing and retrieving attendance data."
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "parameters": {
+      "AuthorizationHeader": {
+        "in": "header",
+        "name": "Authorization",
+        "schema": {
+          "type": "string"
+        },
+        "required": true,
+        "description": "Bearer token for authentication (e.g., Bearer <JWT>)"
+      }
+    },
+    "schemas": {
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indicates if the operation was successful"
+          },
+          "data": {
+            "type": "object",
+            "nullable": true,
+            "description": "Response data (null if no data is returned)"
+          },
+          "message": {
+            "type": "string",
+            "description": "Response message"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error message"
+          },
+          "code": {
+            "type": "integer",
+            "description": "HTTP status code"
+          }
+        },
+        "required": [
+          "error",
+          "code"
+        ]
+      },
+      "Referencia": {
+        "type": "object",
+        "properties": {
+          "idPublicacion": {
+            "type": "integer",
+            "description": "ID de la publicación"
+          },
+          "idVehiculo": {
+            "type": "integer",
+            "description": "ID del vehículo"
+          },
+          "descripcion": {
+            "type": "string",
+            "description": "Descripción de la referencia"
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha de publicación"
+          },
+          "modelo": {
+            "type": "string",
+            "description": "Modelo del vehículo"
+          },
+          "ano": {
+            "type": "integer",
+            "description": "Año del vehículo"
+          },
+          "marca": {
+            "type": "string",
+            "description": "Marca del vehículo"
+          },
+          "medios": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "idMedio": {
+                  "type": "integer",
+                  "description": "ID del medio"
+                },
+                "urlMedio": {
+                  "type": "string",
+                  "format": "uri",
+                  "description": "URL del medio"
+                },
+                "tipo": {
+                  "type": "string",
+                  "enum": [
+                    "image",
+                    "video"
+                  ],
+                  "description": "Tipo de medio"
+                },
+                "publicId": {
+                  "type": "string",
+                  "description": "ID público en Cloudinary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Usuario": {
+        "type": "object",
+        "properties": {
+          "idUsuario": {
+            "type": "integer",
+            "description": "Unique user ID"
+          },
+          "nombre": {
+            "type": "string",
+            "description": "Full name of the user"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User email address"
+          },
+          "telefono": {
+            "type": "string",
+            "description": "User phone number"
+          },
+          "direccion": {
+            "type": "string",
+            "description": "User address"
+          },
+          "idRol": {
+            "type": "integer",
+            "description": "Role ID (1 = Admin, 2 = Vendedor, 3 = Cliente)"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "activo",
+              "inactivo"
+            ],
+            "description": "User status"
+          }
+        }
+      },
+      "Solicitud": {
+        "type": "object",
+        "properties": {
+          "idSolicitud": {
+            "type": "integer",
+            "description": "Unique ID of the credit application"
+          },
+          "idCliente": {
+            "type": "integer",
+            "description": "ID of the client submitting the application"
+          },
+          "idVendedor": {
+            "type": "integer",
+            "description": "ID of the vendor associated with the vehicle or quotation"
+          },
+          "idVehiculo": {
+            "type": "integer",
+            "description": "ID of the vehicle (optional)"
+          },
+          "idCotizacion": {
+            "type": "integer",
+            "description": "ID of the quotation (optional)"
+          },
+          "nombre_completo": {
+            "type": "string",
+            "description": "Full name of the applicant"
+          },
+          "telefono": {
+            "type": "string",
+            "description": "Phone number of the applicant"
+          },
+          "direccion": {
+            "type": "string",
+            "description": "Address of the applicant"
+          },
+          "curp": {
+            "type": "string",
+            "description": "CURP of the applicant (18 characters)"
+          },
+          "fecha_nacimiento": {
+            "type": "string",
+            "format": "date",
+            "description": "Date of birth (YYYY-MM-DD)"
+          },
+          "estado_civil": {
+            "type": "string",
+            "enum": [
+              "soltero",
+              "casado",
+              "divorciado",
+              "viudo",
+              "concubinato"
+            ],
+            "description": "Marital status"
+          },
+          "cantidad_dependientes": {
+            "type": "integer",
+            "description": "Number of dependents"
+          },
+          "tipo_vivienda": {
+            "type": "string",
+            "enum": [
+              "propia",
+              "rentada",
+              "familiar"
+            ],
+            "description": "Type of housing"
+          },
+          "ingreso_familiar": {
+            "type": "number",
+            "description": "Monthly family income"
+          },
+          "direccion_trabajo": {
+            "type": "string",
+            "description": "Work address (optional)"
+          },
+          "empresa": {
+            "type": "string",
+            "description": "Employer name (optional)"
+          },
+          "puesto": {
+            "type": "string",
+            "description": "Job position (optional)"
+          },
+          "ingreso_mensual": {
+            "type": "number",
+            "description": "Monthly personal income"
+          },
+          "tiempo_laborando": {
+            "type": "integer",
+            "description": "Months employed"
+          },
+          "tipo_credito": {
+            "type": "string",
+            "enum": [
+              "ninguno",
+              "personal",
+              "automotriz",
+              "bancario"
+            ],
+            "description": "Current credit type"
+          },
+          "enganche_propuesto": {
+            "type": "number",
+            "description": "Proposed down payment (optional if idCotizacion is provided)"
+          },
+          "plazos_propuestos": {
+            "type": "integer",
+            "description": "Proposed payment terms in months (optional if idCotizacion is provided)"
+          },
+          "comprobante_ingresos": {
+            "type": "boolean",
+            "description": "Indicates if proof of income was provided"
+          },
+          "estatus": {
+            "type": "string",
+            "enum": [
+              "pendiente",
+              "aprobada",
+              "rechazada"
+            ],
+            "description": "Status of the application"
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Submission date"
+          },
+          "descripcion_vehiculo_adicional": {
+            "type": "string",
+            "description": "Additional vehicle description (optional)"
+          }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "JWT access token"
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "JWT refresh token"
+          },
+          "user": {
+            "$ref": "#/components/schemas/Usuario"
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/auth/login": {
+      "post": {
+        "summary": "Iniciar sesión con email y contraseña",
+        "description": "Autentica a un usuario y devuelve un token de acceso y un token de refresco. Límite de 5 intentos por hora.",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Correo electrónico del usuario"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Contraseña del usuario (mínimo 8 caracteres)"
+                  }
+                },
+                "required": [
+                  "email",
+                  "password"
+                ]
+              },
+              "example": {
+                "email": "usuario@financiera.com",
+                "password": "Password123!"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login exitoso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                },
+                "example": {
+                  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                  "user": {
+                    "idUsuario": 1,
+                    "nombre": "Juan Pérez",
+                    "email": "usuario@financiera.com",
+                    "idRol": 3
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validación fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "El correo o la contraseña son requeridos",
+                  "code": 400
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciales inválidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Correo o contraseña incorrectos",
+                  "code": 401
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiados intentos de login",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Demasiados intentos, intenta de nuevo en 15 minutos",
+                  "code": 429
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/google": {
+      "get": {
+        "summary": "Iniciar autenticación con Google",
+        "description": "Redirige al usuario a la página de autenticación de Google para OAuth 2.0.",
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirige a Google",
+            "headers": {
+              "Location": {
+                "description": "URL de redirección a Google",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/google/callback": {
+      "get": {
+        "summary": "Callback de Google OAuth para web",
+        "description": "Maneja la respuesta de Google tras la autenticación web y devuelve tokens y datos del usuario.",
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "Login exitoso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                },
+                "example": {
+                  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                  "user": {
+                    "idUsuario": 1,
+                    "nombre": "Juan Pérez",
+                    "email": "usuario@financiera.com",
+                    "idRol": 3
+                  },
+                  "idUsuario": 1
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticación fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Autenticación con Google fallida",
+                  "code": 401
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Callback de Google OAuth para móviles",
+        "description": "Procesa el código de autorización de Google enviado desde la app móvil y devuelve tokens y datos del usuario. Límite de 5 intentos por hora.",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "description": "Código de autorización de Google"
+                  }
+                },
+                "required": [
+                  "code"
+                ]
+              },
+              "example": {
+                "code": "4/0AX4Xf..."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login exitoso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                },
+                "example": {
+                  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                  "user": {
+                    "idUsuario": 1,
+                    "nombre": "Juan Pérez",
+                    "email": "usuario@financiera.com",
+                    "idRol": 3
+                  },
+                  "idUsuario": 1
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validación fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Código de autorización requerido",
+                  "code": 400
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Autenticación fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Autenticación con Google fallida",
+                  "code": 401
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiados intentos de login",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Demasiados intentos, intenta de nuevo en 15 minutos",
+                  "code": 429
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/refresh": {
+      "post": {
+        "summary": "Refrescar token de acceso",
+        "description": "Genera un nuevo token de acceso usando un token de refresco válido. Límite de 5 intentos por hora.",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "refreshToken": {
+                    "type": "string",
+                    "description": "Token de refresco JWT"
+                  }
+                },
+                "required": [
+                  "refreshToken"
+                ]
+              },
+              "example": {
+                "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Nuevo token de acceso generado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                },
+                "example": {
+                  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                  "user": {
+                    "idUsuario": 1,
+                    "nombre": "Juan Pérez",
+                    "email": "usuario@financiera.com",
+                    "idRol": 3
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validación fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "El token de refresco es requerido",
+                  "code": 400
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token inválido o expirado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Token de refresco inválido",
+                  "code": 401
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiados intentos de refresco",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Demasiados intentos, intenta de nuevo en 15 minutos",
+                  "code": 429
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalogo": {
+      "get": {
+        "summary": "Obtener todos los vehículos disponibles con imágenes",
+        "description": "Devuelve una lista de vehículos disponibles en el catálogo, incluyendo sus imágenes.",
+        "tags": [
+          "Catálogo"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de vehículos disponibles"
+          },
+          "429": {
+            "description": "Demasiadas solicitudes"
+          }
+        }
+      },
+      "post": {
+        "summary": "Crear un vehículo con imágenes",
+        "description": "Crea un nuevo vehículo en el catálogo con sus imágenes. Requiere autenticación.",
+        "tags": [
+          "Catálogo"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idVendedor": {
+                    "type": "integer"
+                  },
+                  "idMarca": {
+                    "type": "integer"
+                  },
+                  "modelo": {
+                    "type": "string"
+                  },
+                  "version": {
+                    "type": "string"
+                  },
+                  "ano": {
+                    "type": "integer"
+                  },
+                  "kilometraje": {
+                    "type": "number"
+                  },
+                  "precio": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "caracteristicas": {
+                    "type": "string"
+                  },
+                  "descripcion": {
+                    "type": "string"
+                  },
+                  "estado": {
+                    "type": "string",
+                    "enum": [
+                      "disponible",
+                      "no_disponible",
+                      "vendido",
+                      "reservado"
+                    ],
+                    "description": "Estado actual del vehículo"
+                  },
+                  "tipoCombustible": {
+                    "type": "string",
+                    "enum": [
+                      "gasolina",
+                      "diésel",
+                      "híbrido",
+                      "otro"
+                    ],
+                    "description": "Tipo de combustible"
+                  },
+                  "transmision": {
+                    "type": "string",
+                    "enum": [
+                      "manual",
+                      "automática",
+                      "CVT",
+                      "otro"
+                    ],
+                    "description": "Tipo de transmisión"
+                  },
+                  "imagenes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    }
+                  }
+                },
+                "required": [
+                  "idVendedor",
+                  "idMarca",
+                  "modelo",
+                  "version",
+                  "ano",
+                  "kilometraje",
+                  "precio",
+                  "caracteristicas",
+                  "descripcion",
+                  "estado",
+                  "tipoCombustible",
+                  "transmision"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Vehículo creado exitosamente"
+          },
+          "401": {
+            "description": "No autenticado"
+          },
+          "413": {
+            "description": "Archivo muy grande"
+          },
+          "429": {
+            "description": "Demasiadas solicitudes"
+          }
+        }
+      }
+    },
+    "/api/catalogo/admin": {
+      "get": {
+        "summary": "Obtener todos los vehículos (solo para administradores)",
+        "description": "Devuelve todos los vehículos del catálogo sin filtro de estado. Requiere autenticación.",
+        "tags": [
+          "Catálogo"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista completa de vehículos"
+          },
+          "401": {
+            "description": "No autenticado"
+          },
+          "429": {
+            "description": "Demasiadas solicitudes"
+          }
+        }
+      }
+    },
+    "/api/catalogo/{idVehiculo}": {
+      "get": {
+        "summary": "Obtener un vehículo por ID",
+        "description": "Devuelve los detalles de un vehículo específico, incluyendo sus imágenes, basado en su ID.",
+        "tags": [
+          "Catálogo"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "idVehiculo",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID del vehículo"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vehículo encontrado"
+          },
+          "404": {
+            "description": "Vehículo no encontrado"
+          },
+          "429": {
+            "description": "Demasiadas solicitudes"
+          }
+        }
+      },
+      "put": {
+        "summary": "Actualizar vehículo y reemplazar imágenes",
+        "description": "Actualiza un vehículo existente. Todos los campos son opcionales y solo se actualizarán los que se envíen. Requiere autenticación.",
+        "tags": [
+          "Catálogo"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "idVehiculo",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID del vehículo a actualizar"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idVendedor": {
+                    "type": "integer"
+                  },
+                  "idMarca": {
+                    "type": "integer"
+                  },
+                  "modelo": {
+                    "type": "string"
+                  },
+                  "version": {
+                    "type": "string"
+                  },
+                  "ano": {
+                    "type": "integer"
+                  },
+                  "kilometraje": {
+                    "type": "number"
+                  },
+                  "precio": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "caracteristicas": {
+                    "type": "string"
+                  },
+                  "descripcion": {
+                    "type": "string"
+                  },
+                  "estado": {
+                    "type": "string",
+                    "enum": [
+                      "disponible",
+                      "no_disponible",
+                      "vendido",
+                      "reservado"
+                    ],
+                    "description": "Estado actual del vehículo"
+                  },
+                  "tipoCombustible": {
+                    "type": "string",
+                    "enum": [
+                      "gasolina",
+                      "diésel",
+                      "híbrido",
+                      "otro"
+                    ],
+                    "description": "Tipo de combustible (elige entre gasolina, diésel, híbrido u otro)"
+                  },
+                  "transmision": {
+                    "type": "string",
+                    "enum": [
+                      "manual",
+                      "automática",
+                      "CVT",
+                      "otro"
+                    ],
+                    "description": "Tipo de transmisión (manual, automática, CVT u otro)"
+                  },
+                  "imagenes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    },
+                    "description": "Archivos de imagen del vehículo (máx. 5)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Vehículo actualizado exitosamente"
+          },
+          "401": {
+            "description": "No autenticado"
+          },
+          "404": {
+            "description": "Vehículo no encontrado"
+          },
+          "413": {
+            "description": "Archivo muy grande"
+          },
+          "429": {
+            "description": "Demasiadas solicitudes"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Eliminar un vehículo por ID",
+        "description": "Elimina un vehículo específico del catálogo. Requiere autenticación.",
+        "tags": [
+          "Catálogo"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "idVehiculo",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID del vehículo"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Vehículo eliminado exitosamente"
+          },
+          "401": {
+            "description": "No autenticado"
+          },
+          "404": {
+            "description": "Vehículo no encontrado"
+          },
+          "429": {
+            "description": "Demasiadas solicitudes"
+          }
+        }
+      }
+    },
+    "/api/catalogo/{idVehiculo}/imagenes": {
+      "post": {
+        "summary": "Agregar más imágenes a un vehículo",
+        "description": "Agrega imágenes adicionales a un vehículo existente. Requiere autenticación.",
+        "tags": [
+          "Catálogo"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "idVehiculo",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID del vehículo"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "imagenes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Imágenes agregadas exitosamente"
+          },
+          "401": {
+            "description": "No autenticado"
+          },
+          "404": {
+            "description": "Vehículo no encontrado"
+          },
+          "413": {
+            "description": "Archivo muy grande"
+          },
+          "429": {
+            "description": "Demasiadas solicitudes"
+          }
+        }
+      }
+    },
+    "/api/cotizaciones": {
+      "get": {
+        "summary": "Listar todas las cotizaciones",
+        "tags": [
+          "Cotizaciones"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de cotizaciones"
+          }
+        }
+      },
+      "post": {
+        "summary": "Crear o actualizar una cotización",
+        "tags": [
+          "Cotizaciones"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "idCliente",
+                  "idVehiculo",
+                  "idVendedor",
+                  "enganche",
+                  "plazos",
+                  "precioNeto"
+                ],
+                "properties": {
+                  "idCliente": {
+                    "type": "integer"
+                  },
+                  "idVehiculo": {
+                    "type": "integer"
+                  },
+                  "idVendedor": {
+                    "type": "integer"
+                  },
+                  "enganche": {
+                    "type": "number"
+                  },
+                  "plazos": {
+                    "type": "integer"
+                  },
+                  "whatsapp": {
+                    "type": "string"
+                  },
+                  "estatus": {
+                    "type": "string"
+                  },
+                  "precioNeto": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cotización actualizada"
+          },
+          "201": {
+            "description": "Cotización creada"
+          },
+          "400": {
+            "description": "Validación fallida"
+          },
+          "403": {
+            "description": "Acceso denegado"
+          }
+        }
+      }
+    },
+    "/api/cotizaciones/asesores": {
+      "get": {
+        "summary": "Obtener cotizaciones de un asesor",
+        "tags": [
+          "Cotizaciones"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "idVendedor",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true,
+            "description": "ID del vendedor (asesor)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de cotizaciones"
+          },
+          "400": {
+            "description": "Parámetros inválidos"
+          },
+          "403": {
+            "description": "Acceso denegado"
+          },
+          "404": {
+            "description": "Asesor no encontrado"
+          }
+        }
+      }
+    },
+    "/api/cotizaciones/{idCotizacion}": {
+      "delete": {
+        "summary": "Eliminar una cotización por ID",
+        "tags": [
+          "Cotizaciones"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "idCotizacion",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true,
+            "description": "ID de la cotización"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cotización eliminada"
+          },
+          "400": {
+            "description": "Parámetro inválido"
+          },
+          "403": {
+            "description": "Acceso denegado"
+          },
+          "404": {
+            "description": "Cotización no encontrada"
+          }
+        }
+      }
+    },
+    "/api/fingerprint/pase-lista": {
+      "post": {
+        "summary": "Registra una asistencia desde el IoT",
+        "description": "Registra una asistencia para una huella verificada, resolviendo el idUsuario y nombre a partir del idHuella. Usado por dispositivos IoT, no requiere autenticación.",
+        "tags": [
+          "Asistencia"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idHuella": {
+                    "type": "integer",
+                    "description": "ID de la huella registrada (1–300)"
+                  }
+                },
+                "required": [
+                  "idHuella"
+                ]
+              },
+              "example": {
+                "idHuella": 123
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Asistencia registrada con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "Asistencia registrada con éxito",
+                  "data": {
+                    "idAsistencia": 456,
+                    "idUsuario": 789,
+                    "nombre": "Juan Pérez",
+                    "timestamp": "2025-08-05T15:37:00-06:00"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validación fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "El idHuella debe estar entre 1 y 300",
+                  "code": 400
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/fingerprint/asistencias": {
+      "post": {
+        "summary": "Obtiene asistencias consolidadas o detalladas con información de usuario",
+        "description": "Retorna asistencias con información completa del usuario:\n- Modo consolidado (detailed=false): Datos agrupados por usuario y fecha (idUsuario, nombre, conteo, primer_registro, ultimo_registro)\n- Modo detallado (detailed=true): Registros individuales (idAsistencia, idUsuario, nombre, timestamp)\nSi idUsuario no se proporciona, retorna para todos los usuarios. Requiere autenticación JWT y rol de administrador.\n",
+        "tags": [
+          "Asistencia"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "detailed",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "Tipo de respuesta:\n- false (default): Datos consolidados por usuario\n- true: Registros detallados individuales\n"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idUsuario": {
+                    "type": "integer",
+                    "nullable": true,
+                    "description": "ID del usuario para filtrar (opcional)"
+                  },
+                  "startDate": {
+                    "type": "string",
+                    "format": "date-time",
+                    "nullable": true,
+                    "description": "Fecha de inicio del rango (opcional, formato ISO 8601)"
+                  },
+                  "endDate": {
+                    "type": "string",
+                    "format": "date-time",
+                    "nullable": true,
+                    "description": "Fecha de fin del rango (opcional, formato ISO 8601)"
+                  }
+                }
+              },
+              "example": {
+                "idUsuario": 789,
+                "startDate": "2025-08-01T00:00:00-06:00",
+                "endDate": "2025-08-05T23:59:59-06:00"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Asistencias obtenidas con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "examples": {
+                  "consolidated": {
+                    "summary": "Respuesta consolidada",
+                    "value": {
+                      "success": true,
+                      "message": "Asistencias consolidadas obtenidas con éxito",
+                      "data": [
+                        {
+                          "idUsuario": 789,
+                          "nombre": "Juan Pérez",
+                          "conteo": 5,
+                          "primer_registro": "2025-08-01T08:15:00-06:00",
+                          "ultimo_registro": "2025-08-01T17:30:00-06:00"
+                        },
+                        {
+                          "idUsuario": 790,
+                          "nombre": "María García",
+                          "conteo": 3,
+                          "primer_registro": "2025-08-01T08:30:00-06:00",
+                          "ultimo_registro": "2025-08-01T17:15:00-06:00"
+                        }
+                      ]
+                    }
+                  },
+                  "detailed": {
+                    "summary": "Respuesta detallada",
+                    "value": {
+                      "success": true,
+                      "message": "Asistencias detalladas obtenidas con éxito",
+                      "data": [
+                        {
+                          "idAsistencia": 101,
+                          "idUsuario": 789,
+                          "nombre": "Juan Pérez",
+                          "timestamp": "2025-08-01T08:15:00-06:00"
+                        },
+                        {
+                          "idAsistencia": 102,
+                          "idUsuario": 789,
+                          "nombre": "Juan Pérez",
+                          "timestamp": "2025-08-01T12:30:00-06:00"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "invalidDate": {
+                    "summary": "Fecha inválida",
+                    "value": {
+                      "success": false,
+                      "error": "startDate debe ser una fecha válida en formato ISO 8601",
+                      "code": 400
+                    }
+                  },
+                  "missingParams": {
+                    "summary": "Parámetros faltantes",
+                    "value": {
+                      "success": false,
+                      "error": "Se requiere endDate cuando se proporciona startDate",
+                      "code": 400
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Token JWT inválido o faltante",
+                  "code": 401
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Requiere rol de administrador",
+                  "code": 403
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Error al procesar la solicitud",
+                  "code": 500
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/fingerprint/get": {
+      "get": {
+        "summary": "Obtiene registros de huellas",
+        "description": "Retorna la lista de huellas registradas para sincronización con dispositivos IoT. No requiere autenticación.",
+        "tags": [
+          "Huellas"
+        ],
+        "responses": {
+          "200": {
+            "description": "Huellas obtenidas con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "Huellas obtenidas con éxito",
+                  "data": [
+                    {
+                      "idHuella": 123,
+                      "idUsuario": 789,
+                      "estado": "verificado",
+                      "fechaEspera": null
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error inesperado en el servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Error inesperado",
+                  "code": 500
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/fingerprint/request": {
+      "post": {
+        "summary": "Solicita registro de huella",
+        "description": "Inicia el registro de una huella para un administrador o vendedor, asignando un idHuella entre 1 y 300. Elimina cualquier huella en espera existente. Requiere autenticación JWT y rol de administrador.",
+        "tags": [
+          "Huellas"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idUsuario": {
+                    "type": "integer",
+                    "description": "ID del usuario (administrador o vendedor) para registrar la huella"
+                  }
+                },
+                "required": [
+                  "idUsuario"
+                ]
+              },
+              "example": {
+                "idUsuario": 789
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Huella en espera para registro",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "Huella en espera para registro con éxito",
+                  "data": {
+                    "idHuella": 123,
+                    "caducidad": "2025-08-05T15:37:00-06:00"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validación fallida o no hay espacios disponibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "No hay espacios disponibles para registrar más huellas",
+                  "code": 400
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Token JWT inválido o faltante",
+                  "code": 401
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Requiere rol de administrador",
+                  "code": 403
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/fingerprint/confirm": {
+      "post": {
+        "summary": "Confirma huella en espera o consulta huella pendiente",
+        "description": "Confirma el registro de una huella si se proporciona idHuella, o retorna la huella en espera si no se proporciona. Usado por dispositivos IoT, no requiere autenticación.",
+        "tags": [
+          "Huellas"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idHuella": {
+                    "type": "integer",
+                    "nullable": true,
+                    "description": "ID de la huella a confirmar (1–300). Si no se proporciona, retorna la huella en espera."
+                  }
+                }
+              },
+              "example": {
+                "idHuella": 123
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resultado de la confirmación o consulta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "examples": {
+                  "confirmed": {
+                    "summary": "Huella confirmada",
+                    "value": {
+                      "success": true,
+                      "message": "Huella confirmada con éxito",
+                      "data": {
+                        "idHuella": 123
+                      }
+                    }
+                  },
+                  "pending": {
+                    "summary": "Huella en espera encontrada",
+                    "value": {
+                      "success": true,
+                      "message": "Huella en espera encontrada",
+                      "data": {
+                        "idHuella": 123
+                      }
+                    }
+                  },
+                  "none": {
+                    "summary": "No hay huella en espera",
+                    "value": {
+                      "success": true,
+                      "message": "No hay huella en espera",
+                      "data": {
+                        "idHuella": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validación fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "El idHuella debe estar entre 1 y 300",
+                  "code": 400
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/fingerprint/status": {
+      "post": {
+        "summary": "Verifica estado de huella",
+        "description": "Consulta el estado de una huella. Requiere autenticación JWT y rol de administrador. Usado por el frontend web.",
+        "tags": [
+          "Huellas"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idUsuario": {
+                    "type": "integer",
+                    "description": "ID del usuario cuya huella se consulta"
+                  }
+                },
+                "required": [
+                  "idUsuario"
+                ]
+              },
+              "example": {
+                "idUsuario": 789
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Estado de huella obtenido con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "Estado de huella obtenido con éxito",
+                  "data": {
+                    "estado": "en espera",
+                    "idHuella": 123,
+                    "fechaEspera": "2025-08-05T15:37:00-06:00"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validación fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "El idUsuario es requerido",
+                  "code": 400
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Token JWT inválido o faltante",
+                  "code": 401
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Requiere rol de administrador",
+                  "code": 403
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/fingerprint/cancel": {
+      "post": {
+        "summary": "Cancela registro de huella",
+        "description": "Cancela registros de huella en espera. Requiere autenticación JWT y rol de administrador. Usado por el frontend web.",
+        "tags": [
+          "Huellas"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registro de huella cancelado con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "Registro de huella cancelado con éxito",
+                  "data": null
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validación fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "No hay registros en espera para cancelar",
+                  "code": 400
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Token JWT inválido o faltante",
+                  "code": 401
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Requiere rol de administrador",
+                  "code": 403
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/fingerprint/delete": {
+      "post": {
+        "summary": "Elimina huella de usuario",
+        "description": "Elimina la huella de un usuario. Requiere autenticación JWT y rol de administrador. Usado por el frontend web.",
+        "tags": [
+          "Huellas"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idUsuario": {
+                    "type": "integer",
+                    "description": "ID del usuario cuya huella se eliminará"
+                  }
+                },
+                "required": [
+                  "idUsuario"
+                ]
+              },
+              "example": {
+                "idUsuario": 789
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Huella eliminada con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "Huella eliminada con éxito",
+                  "data": null
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validación fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "No se encontraron huellas para eliminar",
+                  "code": 400
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Token JWT inválido o faltante",
+                  "code": 401
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Requiere rol de administrador",
+                  "code": 403
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/marcas": {
+      "get": {
+        "summary": "Obtener todas las marcas",
+        "tags": [
+          "Marcas"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de marcas"
+          }
+        }
+      },
+      "post": {
+        "summary": "Crear nueva marca",
+        "tags": [
+          "Marcas"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre_marca": {
+                    "type": "string"
+                  },
+                  "enlace_imagen": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Marca creada"
+          },
+          "400": {
+            "description": "Validación fallida"
+          },
+          "403": {
+            "description": "Acceso denegado"
+          }
+        }
+      }
+    },
+    "/api/marcas/{idMarca}": {
+      "get": {
+        "summary": "Obtener una marca por ID",
+        "tags": [
+          "Marcas"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "idMarca",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Marca encontrada"
+          },
+          "404": {
+            "description": "No encontrada"
+          }
+        }
+      },
+      "put": {
+        "summary": "Actualizar una marca",
+        "tags": [
+          "Marcas"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "idMarca",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre_marca": {
+                    "type": "string"
+                  },
+                  "enlace_imagen": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Marca actualizada"
+          },
+          "400": {
+            "description": "Validación fallida"
+          },
+          "403": {
+            "description": "Acceso denegado"
+          },
+          "404": {
+            "description": "Marca no encontrada"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Eliminar marca",
+        "tags": [
+          "Marcas"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "idMarca",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Marca eliminada"
+          },
+          "403": {
+            "description": "Acceso denegado"
+          },
+          "404": {
+            "description": "No encontrada"
+          }
+        }
+      }
+    },
+    "/api/marcas/{idMarca}/vehiculos": {
+      "get": {
+        "summary": "Obtener vehículos por marca",
+        "tags": [
+          "Marcas"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "idMarca",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de vehículos"
+          },
+          "400": {
+            "description": "ID de marca inválido"
+          }
+        }
+      }
+    },
+    "/api/referencias": {
+      "get": {
+        "summary": "Listar todas las referencias",
+        "description": "Devuelve una lista de todas las referencias de vehículos disponibles.",
+        "tags": [
+          "Referencias"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de referencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Referencia"
+                  }
+                },
+                "example": [
+                  {
+                    "idPublicacion": 1,
+                    "idVehiculo": 123,
+                    "descripcion": "Vehículo en excelente estado",
+                    "fecha": "2025-06-13T14:54:00Z",
+                    "modelo": "Corolla",
+                    "ano": 2020,
+                    "marca": "Toyota",
+                    "medios": [
+                      {
+                        "idMedio": 1,
+                        "urlMedio": "https://res.cloudinary.com/dxvfld0hs/image/upload/v1750887837/referencias/lu9czqade4qbpylzxnl8.png",
+                        "tipo": "image",
+                        "publicId": "referencias/lu9czqade4qbpylzxnl8"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas solicitudes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Demasiadas solicitudes, intenta de nuevo en 15 minutos",
+                  "code": 429
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Crear una nueva referencia (solo administradores)",
+        "description": "Crea una nueva referencia de vehículo con descripción y archivos multimedia (imágenes o videos). \nRequiere autenticación de administrador y soporta hasta 2 archivos de 2MB cada uno.\nEjemplo de uso con cURL:\n```bash\ncurl -X POST \"https://financiera-backend.vercel.app/api/referencias\" \\\n  -H \"Authorization: Bearer <your-jwt-token>\" \\\n  -F \"idVehiculo=123\" \\\n  -F \"descripcion=Vehículo en excelente estado\" \\\n  -F \"files=@/path/to/image.jpg\" \\\n  -F \"files=@/path/to/video.mp4\"\n```\n",
+        "tags": [
+          "Referencias"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idVehiculo": {
+                    "type": "integer",
+                    "description": "ID del vehículo (opcional)"
+                  },
+                  "descripcion": {
+                    "type": "string",
+                    "description": "Descripción de la referencia (mínimo 3, máximo 500 caracteres)",
+                    "minLength": 3,
+                    "maxLength": 500
+                  },
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    },
+                    "description": "Archivos de imagen o video (máximo 2 archivos, 2MB cada uno)"
+                  }
+                },
+                "required": [
+                  "descripcion"
+                ]
+              },
+              "example": {
+                "idVehiculo": 123,
+                "descripcion": "Vehículo en excelente estado, único dueño",
+                "files": [
+                  "file1.jpg",
+                  "file2.mp4"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Referencia creada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Referencia"
+                },
+                "example": {
+                  "idPublicacion": 1,
+                  "idVehiculo": 123,
+                  "descripcion": "Vehículo en excelente estado, único dueño",
+                  "fecha": "2025-06-13T14:54:00Z",
+                  "modelo": "Corolla",
+                  "ano": 2020,
+                  "marca": "Toyota",
+                  "medios": [
+                    {
+                      "idMedio": 1,
+                      "urlMedio": "https://res.cloudinary.com/dxvfld0hs/image/upload/v1750887837/referencias/lu9czqade4qbpylzxnl8.png",
+                      "tipo": "image",
+                      "publicId": "referencias/lu9czqade4qbpylzxnl8"
+                    },
+                    {
+                      "idMedio": 2,
+                      "urlMedio": "https://res.cloudinary.com/dxvfld0hs/video/upload/v1750887837/referencias/sample.mp4",
+                      "tipo": "video",
+                      "publicId": "referencias/sample"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "La descripción es requerida y debe tener entre 3 y 500 caracteres",
+                  "code": 400
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado (no administrador)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "No tienes permisos para realizar esta acción",
+                  "code": 403
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Vehículo no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "El vehículo con ID 123 no existe",
+                  "code": 404
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Archivos demasiado grandes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "El archivo file1.jpg excede el tamaño máximo de 2MB",
+                  "code": 413
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas solicitudes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Demasiadas solicitudes, intenta de nuevo en 15 minutos",
+                  "code": 429
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/referencias/{id}": {
+      "get": {
+        "summary": "Obtener una referencia por ID",
+        "description": "Devuelve los detalles de una referencia específica basada en su ID.",
+        "tags": [
+          "Referencias"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID de la referencia"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalles de la referencia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Referencia"
+                },
+                "example": {
+                  "idPublicacion": 1,
+                  "idVehiculo": 123,
+                  "descripcion": "Vehículo en excelente estado",
+                  "fecha": "2025-06-13T14:54:00Z",
+                  "modelo": "Corolla",
+                  "ano": 2020,
+                  "marca": "Toyota",
+                  "medios": [
+                    {
+                      "idMedio": 1,
+                      "urlMedio": "https://res.cloudinary.com/dxvfld0hs/image/upload/v1750887837/referencias/lu9czqade4qbpylzxnl8.png",
+                      "tipo": "image",
+                      "publicId": "referencias/lu9czqade4qbpylzxnl8"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Referencia no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Referencia no encontrada",
+                  "code": 404
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas solicitudes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Demasiadas solicitudes, intenta de nuevo en 15 minutos",
+                  "code": 429
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Actualizar una referencia (solo administradores)",
+        "description": "Actualiza una referencia existente, permitiendo modificar la descripción, vehículo asociado y archivos multimedia. \nRequiere autenticación de administrador. Los medios existentes se mantienen si se especifican en `retainedMediaIds`.\nEjemplo de uso con cURL:\n```bash\ncurl -X PUT \"https://financiera-backend.vercel.app/api/referencias/1\" \\\n  -H \"Authorization: Bearer <your-jwt-token>\" \\\n  -F \"idVehiculo=123\" \\\n  -F \"descripcion=Actualización de descripción\" \\\n  -F \"retainedMediaIds=[1,2]\" \\\n  -F \"files=@/path/to/new-image.jpg\"\n```\n",
+        "tags": [
+          "Referencias"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID de la referencia"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idVehiculo": {
+                    "type": "integer",
+                    "description": "ID del vehículo (opcional)"
+                  },
+                  "descripcion": {
+                    "type": "string",
+                    "description": "Descripción de la referencia (mínimo 3, máximo 500 caracteres)",
+                    "minLength": 3,
+                    "maxLength": 500
+                  },
+                  "retainedMediaIds": {
+                    "type": "string",
+                    "description": "JSON array de IDs de medios a conservar (e.g., \"[1,2]\")"
+                  },
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    },
+                    "description": "Nuevos archivos de imagen o video (máximo 2 archivos, 2MB cada uno)"
+                  }
+                },
+                "required": [
+                  "descripcion"
+                ]
+              },
+              "example": {
+                "idVehiculo": 123,
+                "descripcion": "Actualización de descripción",
+                "retainedMediaIds": "[1,2]",
+                "files": [
+                  "new-image.jpg"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Referencia actualizada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Referencia"
+                },
+                "example": {
+                  "idPublicacion": 1,
+                  "idVehiculo": 123,
+                  "descripcion": "Actualización de descripción",
+                  "fecha": "2025-06-13T14:54:00Z",
+                  "modelo": "Corolla",
+                  "ano": 2020,
+                  "marca": "Toyota",
+                  "medios": [
+                    {
+                      "idMedio": 1,
+                      "urlMedio": "https://res.cloudinary.com/dxvfld0hs/image/upload/v1750887837/referencias/lu9czqade4qbpylzxnl8.png",
+                      "tipo": "image",
+                      "publicId": "referencias/lu9czqade4qbpylzxnl8"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "La descripción es requerida y debe tener entre 3 y 500 caracteres",
+                  "code": 400
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado (no administrador)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "No tienes permisos para realizar esta acción",
+                  "code": 403
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Referencia o vehículo no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Referencia no encontrada",
+                  "code": 404
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Archivos demasiado grandes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "El archivo new-image.jpg excede el tamaño máximo de 2MB",
+                  "code": 413
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas solicitudes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Demasiadas solicitudes, intenta de nuevo en 15 minutos",
+                  "code": 429
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Eliminar una referencia (solo administradores)",
+        "description": "Elimina una referencia específica (soft delete). Requiere autenticación de administrador.",
+        "tags": [
+          "Referencias"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID de la referencia"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Referencia eliminada exitosamente"
+          },
+          "403": {
+            "description": "Acceso denegado (no administrador)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "No tienes permisos para realizar esta acción",
+                  "code": 403
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Referencia no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Referencia no encontrada",
+                  "code": 404
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas solicitudes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": "Demasiadas solicitudes, intenta de nuevo en 15 minutos",
+                  "code": 429
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/solicitudes": {
+      "post": {
+        "tags": [
+          "Solicitudes"
+        ],
+        "summary": "Crear una nueva solicitud de crédito",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idVendedor": {
+                    "type": "integer"
+                  },
+                  "idVehiculo": {
+                    "type": "integer"
+                  },
+                  "idCotizacion": {
+                    "type": "integer"
+                  },
+                  "nombre_completo": {
+                    "type": "string"
+                  },
+                  "telefono": {
+                    "type": "string"
+                  },
+                  "direccion": {
+                    "type": "string"
+                  },
+                  "curp": {
+                    "type": "string"
+                  },
+                  "fecha_nacimiento": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "estado_civil": {
+                    "type": "string",
+                    "enum": [
+                      "soltero",
+                      "casado",
+                      "divorciado",
+                      "viudo",
+                      "concubinato"
+                    ]
+                  },
+                  "cantidad_dependientes": {
+                    "type": "integer"
+                  },
+                  "tipo_vivienda": {
+                    "type": "string",
+                    "enum": [
+                      "propia",
+                      "rentada",
+                      "familiar"
+                    ]
+                  },
+                  "ingreso_familiar": {
+                    "type": "number"
+                  },
+                  "direccion_trabajo": {
+                    "type": "string"
+                  },
+                  "empresa": {
+                    "type": "string"
+                  },
+                  "puesto": {
+                    "type": "string"
+                  },
+                  "ingreso_mensual": {
+                    "type": "number"
+                  },
+                  "tiempo_laborando": {
+                    "type": "integer"
+                  },
+                  "tipo_credito": {
+                    "type": "string",
+                    "enum": [
+                      "ninguno",
+                      "personal",
+                      "automotriz",
+                      "bancario"
+                    ]
+                  },
+                  "enganche_propuesto": {
+                    "type": "number"
+                  },
+                  "plazos_propuestos": {
+                    "type": "integer"
+                  },
+                  "comprobante_ingresos": {
+                    "type": "boolean"
+                  },
+                  "descripcion_vehiculo_adicional": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "nombre_completo",
+                  "curp",
+                  "fecha_nacimiento",
+                  "estado_civil",
+                  "cantidad_dependientes",
+                  "tipo_vivienda",
+                  "ingreso_familiar",
+                  "ingreso_mensual",
+                  "tiempo_laborando",
+                  "tipo_credito"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Solicitud creada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "idSolicitud": {
+                      "type": "integer"
+                    },
+                    "estatus": {
+                      "type": "string"
+                    },
+                    "fecha": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error de validación"
+          },
+          "403": {
+            "description": "Acceso denegado"
+          },
+          "404": {
+            "description": "No encontrado"
+          },
+          "409": {
+            "description": "Conflicto de datos"
+          },
+          "429": {
+            "description": "Demasiadas solicitudes"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Solicitudes"
+        ],
+        "summary": "Listar todas las solicitudes de crédito",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de solicitudes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "idSolicitud": {
+                        "type": "integer"
+                      },
+                      "nombre_completo": {
+                        "type": "string"
+                      },
+                      "estatus": {
+                        "type": "string"
+                      },
+                      "fecha": {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado"
+          },
+          "403": {
+            "description": "Acceso denegado"
+          },
+          "429": {
+            "description": "Demasiadas solicitudes"
+          }
+        }
+      }
+    },
+    "/api/solicitudes/{id}": {
+      "get": {
+        "tags": [
+          "Solicitudes"
+        ],
+        "summary": "Obtener una solicitud de crédito por ID",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true,
+            "description": "ID de la solicitud"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Solicitud encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "idSolicitud": {
+                      "type": "integer"
+                    },
+                    "nombre_completo": {
+                      "type": "string"
+                    },
+                    "estatus": {
+                      "type": "string"
+                    },
+                    "fecha": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autenticado"
+          },
+          "403": {
+            "description": "Acceso denegado"
+          },
+          "404": {
+            "description": "No encontrado"
+          },
+          "429": {
+            "description": "Demasiadas solicitudes"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Solicitudes"
+        ],
+        "summary": "Actualizar una solicitud de crédito",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true,
+            "description": "ID de la solicitud"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "estatus": {
+                    "type": "string",
+                    "enum": [
+                      "pendiente",
+                      "aprobada",
+                      "rechazada"
+                    ]
+                  },
+                  "monto_autorizado": {
+                    "type": "number"
+                  },
+                  "idAdministrador": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "estatus",
+                  "idAdministrador"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Solicitud actualizada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "mensaje": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error de validación"
+          },
+          "401": {
+            "description": "No autenticado"
+          },
+          "403": {
+            "description": "Acceso denegado"
+          },
+          "404": {
+            "description": "No encontrado"
+          },
+          "429": {
+            "description": "Demasiadas solicitudes"
+          }
+        }
+      }
+    },
+    "/api/usuarios": {
+      "get": {
+        "summary": "Listar todos los usuarios",
+        "description": "Devuelve una lista de todos los usuarios registrados. Solo accesible para administradores.",
+        "tags": [
+          "Usuarios"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de usuarios",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Usuario"
+                  }
+                },
+                "example": [
+                  {
+                    "idUsuario": 1,
+                    "nombre": "Juan Pérez",
+                    "email": "juan@financiera.com",
+                    "telefono": 1234567890,
+                    "direccion": "Calle Falsa 123",
+                    "idRol": 1,
+                    "estado": "activo"
+                  }
+                ]
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado (no administrador)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "No tienes permisos para realizar esta acción",
+                  "code": 403
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas solicitudes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Demasiadas solicitudes, intenta de nuevo en 15 minutos",
+                  "code": 429
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Crear un nuevo usuario (solo administradores)",
+        "description": "Crea un nuevo usuario con un rol específico.\nRoles disponibles: 2 = Vendedor, 3 = Cliente.\nSolo accesible para administradores.\n",
+        "tags": [
+          "Usuarios"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": {
+                    "type": "string",
+                    "description": "Nombre completo del usuario"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Correo electrónico único"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Contraseña (mínimo 8 caracteres)"
+                  },
+                  "idRol": {
+                    "type": "integer",
+                    "description": "Rol del usuario (2 = Vendedor, 3 = Cliente)",
+                    "enum": [
+                      2,
+                      3
+                    ]
+                  }
+                },
+                "required": [
+                  "nombre",
+                  "email",
+                  "password",
+                  "idRol"
+                ]
+              },
+              "example": {
+                "nombre": "María Gómez",
+                "email": "maria@financiera.com",
+                "password": "SecurePass123!",
+                "idRol": 3
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuario creado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Usuario"
+                },
+                "example": {
+                  "idUsuario": 2,
+                  "nombre": "María Gómez",
+                  "email": "maria@financiera.com",
+                  "idRol": 3,
+                  "estado": "activo"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado (no administrador)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "No tienes permisos para realizar esta acción",
+                  "code": 403
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Correo ya registrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "El correo ya está registrado",
+                  "code": 409
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas solicitudes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Demasiadas solicitudes, intenta de nuevo en 15 minutos",
+                  "code": 429
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/{id}": {
+      "get": {
+        "summary": "Obtener un usuario por ID",
+        "description": "Devuelve los detalles de un usuario. Los administradores pueden ver cualquier usuario, los clientes solo su propio perfil.",
+        "tags": [
+          "Usuarios"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID del usuario"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalles del usuario",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Usuario"
+                },
+                "example": {
+                  "idUsuario": 1,
+                  "nombre": "Juan Pérez",
+                  "email": "juan@financiera.com",
+                  "telefono": 1234567890,
+                  "direccion": "Calle Falsa 123",
+                  "idRol": 1,
+                  "estado": "activo"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "No tienes permisos para ver este usuario",
+                  "code": 403
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuario no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Usuario no encontrado",
+                  "code": 404
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas solicitudes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Demasiadas solicitudes, intenta de nuevo en 15 minutos",
+                  "code": 429
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Actualizar perfil de usuario",
+        "description": "Actualiza los datos de un usuario.\nLos clientes pueden editar su propio perfil (nombre, teléfono, dirección, contraseña).\nLos administradores también pueden modificar el rol (1 = Admin, 2 = Vendedor, 3 = Cliente) y el estado.\n",
+        "tags": [
+          "Usuarios"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID del usuario"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": {
+                    "type": "string",
+                    "description": "Nombre completo del usuario"
+                  },
+                  "telefono": {
+                    "type": "string",
+                    "description": "Número de teléfono"
+                  },
+                  "direccion": {
+                    "type": "string",
+                    "description": "Dirección del usuario"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Nueva contraseña (mínimo 8 caracteres)"
+                  },
+                  "idRol": {
+                    "type": "integer",
+                    "description": "Rol del usuario (solo administradores, 1 = Admin, 2 = Vendedor, 3 = Cliente)",
+                    "enum": [
+                      1,
+                      2,
+                      3
+                    ]
+                  },
+                  "estado": {
+                    "type": "string",
+                    "description": "Estado del usuario (solo administradores)",
+                    "enum": [
+                      "activo",
+                      "inactivo"
+                    ]
+                  }
+                }
+              },
+              "example": {
+                "nombre": "Ana López Actualizada",
+                "telefono": 987654321,
+                "direccion": "Avenida Siempre Viva 456",
+                "password": "NewPass123!",
+                "idRol": 3,
+                "estado": "activo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Registro actualizado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Usuario"
+                },
+                "example": {
+                  "idUsuario": 2,
+                  "nombre": "Ana López Actualizada",
+                  "email": "ana.lopez@financiera.com",
+                  "telefono": 987654321,
+                  "direccion": "Avenida Siempre Viva 456",
+                  "idRol": 3,
+                  "estado": "activo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Datos inválidos",
+                  "code": 400
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "No tienes permisos para modificar este usuario",
+                  "code": 403
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Registro no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Usuario no encontrado",
+                  "code": 404
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas solicitudes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Demasiadas solicitudes, intenta de nuevo en 15 minutos",
+                  "code": 429
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Eliminar un usuario (soft delete)",
+        "description": "Marca un usuario como inactivo (soft delete). Solo accesible para administradores.",
+        "tags": [
+          "Usuarios"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID del usuario"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Usuario eliminado exitosamente (soft delete)"
+          },
+          "403": {
+            "description": "Acceso denegado (no administrador)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "No tienes permisos para realizar esta acción",
+                  "code": 403
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuario no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Usuario no encontrado",
+                  "code": 404
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas solicitudes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Demasiadas solicitudes, intenta de nuevo en 15 minutos",
+                  "code": 429
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/register": {
+      "post": {
+        "summary": "Registrar un nuevo usuario",
+        "description": "Registra un nuevo cliente en la plataforma.\nNo requiere autenticación previa.\nEl usuario registrado tendrá el rol de cliente (idRol = 3) por defecto.\nLímite de 5 registros por hora.\n",
+        "tags": [
+          "Usuarios"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": {
+                    "type": "string",
+                    "description": "Nombre completo del usuario"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Correo electrónico único"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Contraseña (mínimo 8 caracteres, con letras y números)"
+                  }
+                },
+                "required": [
+                  "nombre",
+                  "email",
+                  "password"
+                ]
+              },
+              "example": {
+                "nombre": "Ana López",
+                "email": "ana.lopez@financiera.com",
+                "password": "SecurePass123!"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Cliente registrado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Usuario"
+                },
+                "example": {
+                  "idUsuario": 2,
+                  "nombre": "Ana López",
+                  "email": "ana.lopez@financiera.com",
+                  "idRol": 3,
+                  "estado": "activo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "El correo electrónico no es válido",
+                  "code": 400
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Correo ya registrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "El correo ya está registrado",
+                  "code": 409
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiados intentos de registro",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Demasiados intentos, intenta de nuevo en 15 minutos",
+                  "code": 429
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/register-google": {
+      "post": {
+        "summary": "Registrar un nuevo cliente con Google",
+        "description": "Registra un nuevo cliente usando credenciales de Google.\nNo requiere autenticación previa.\nLímite de 5 registros por hora.\n",
+        "tags": [
+          "Usuarios"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": {
+                    "type": "string",
+                    "description": "Nombre completo del usuario"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Correo electrónico proporcionado por Google"
+                  },
+                  "googleId": {
+                    "type": "string",
+                    "description": "ID único de Google"
+                  }
+                },
+                "required": [
+                  "nombre",
+                  "email",
+                  "googleId"
+                ]
+              },
+              "example": {
+                "nombre": "Ana López",
+                "email": "ana.lopez@financiera.com",
+                "googleId": 1234567890
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Usuario ya registrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Usuario"
+                },
+                "example": {
+                  "idUsuario": 2,
+                  "nombre": "Ana López",
+                  "email": "ana.lopez@financiera.com",
+                  "idRol": 3,
+                  "estado": "activo"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Cliente registrado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Usuario"
+                },
+                "example": {
+                  "idUsuario": 2,
+                  "nombre": "Ana López",
+                  "email": "ana.lopez@financiera.com",
+                  "idRol": 3,
+                  "estado": "activo"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Correo ya registrado con otro método",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "El correo ya está registrado con otro método",
+                  "code": 409
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiados intentos de registro",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Demasiados intentos, intenta de nuevo en 15 minutos",
+                  "code": 429
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/{id}/password": {
+      "put": {
+        "summary": "Cambiar contraseña de usuario",
+        "description": "Cambia la contraseña de un usuario.\nLos no administradores deben proporcionar la contraseña actual.\nLos administradores pueden cambiar la contraseña de cualquier usuario.\n",
+        "tags": [
+          "Usuarios"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID del usuario"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "currentPassword": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Contraseña actual (requerida para no administradores)"
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Nueva contraseña (mínimo 8 caracteres)"
+                  }
+                },
+                "required": [
+                  "newPassword"
+                ]
+              },
+              "example": {
+                "currentPassword": "OldPass123!",
+                "newPassword": "NewPass123!"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Contraseña actualizada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Mensaje de éxito"
+                    }
+                  }
+                },
+                "example": {
+                  "message": "Contraseña actualizada exitosamente"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "La nueva contraseña es requerida",
+                  "code": 400
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Acceso denegado o contraseña actual incorrecta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Contraseña actual incorrecta",
+                  "code": 403
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Registro no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Usuario no encontrado",
+                  "code": 404
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiadas solicitudes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Demasiadas solicitudes, intenta de nuevo en 15 minutos",
+                  "code": 429
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
