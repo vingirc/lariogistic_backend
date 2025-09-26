@@ -1,4 +1,4 @@
-const db = require('../config/database');
+const TramitesService = require('../services/tramitesService');
 
 class TramitesController {
     // Obtener todos los trámites de un usuario
@@ -6,23 +6,15 @@ class TramitesController {
         try {
             const { idUsuario } = req.params;
             
-            const query = `
-                SELECT 
-                    t.idTramite,
-                    t.idUsuario,
-                    t.fechaSolicitud,
-                    t.estado,
-                    t.descripcion,
-                    t.fechaInicio,
-                    t.fechaFin,
-                    tt.nombre as tipoTramite
-                FROM Tramites t
-                INNER JOIN TiposTramites tt ON t.idTipoTramite = tt.idTipoTramite
-                WHERE t.idUsuario = ?
-                ORDER BY t.fechaSolicitud DESC
-            `;
+            // Validar parámetro
+            if (!idUsuario || isNaN(idUsuario)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'ID de usuario inválido'
+                });
+            }
             
-            const [tramites] = await db.execute(query, [idUsuario]);
+            const tramites = await TramitesService.obtenerTramitesPorUsuario(idUsuario);
             
             res.status(200).json({
                 success: true,
@@ -56,26 +48,24 @@ class TramitesController {
                 });
             }
 
-            const query = `
-                INSERT INTO Tramites (
-                    idUsuario, 
-                    idTipoTramite, 
-                    descripcion, 
-                    fechaInicio, 
-                    fechaFin
-                ) VALUES (?, ?, ?, ?, ?)
-            `;
+            // Validar que el tipo de trámite existe
+            const tipoTramiteExiste = await TramitesService.existeTipoTramite(idTipoTramite);
+            if (!tipoTramiteExiste) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'El tipo de trámite especificado no existe'
+                });
+            }
 
-            const [result] = await db.execute(query, [
+            const datosTrami = {
                 idUsuario,
                 idTipoTramite,
-                descripcion || null,
-                fechaInicio || null,
-                fechaFin || null
-            ]);
+                descripcion,
+                fechaInicio,
+                fechaFin
+            };
 
-            // Obtener el trámite recién creado con información completa
-            const tramiteCreado = await TramitesController.obtenerTramitePorId(result.insertId);
+            const tramiteCreado = await TramitesService.crearTramite(datosTrami);
 
             res.status(201).json({
                 success: true,
@@ -92,59 +82,44 @@ class TramitesController {
         }
     }
 
-    // Obtener trámite por ID (método auxiliar)
-    static async obtenerTramitePorId(idTramite) {
-        try {
-            const query = `
-                SELECT 
-                    t.idTramite,
-                    t.idUsuario,
-                    t.fechaSolicitud,
-                    t.estado,
-                    t.descripcion,
-                    t.fechaInicio,
-                    t.fechaFin,
-                    tt.nombre as tipoTramite
-                FROM Tramites t
-                INNER JOIN TiposTramites tt ON t.idTipoTramite = tt.idTipoTramite
-                WHERE t.idTramite = ?
-            `;
-            
-            const [tramites] = await db.execute(query, [idTramite]);
-            return tramites[0];
-        } catch (error) {
-            console.error('Error al obtener trámite por ID:', error);
-            throw error;
-        }
-    }
-
     // Actualizar estado de trámite
     static async actualizarEstadoTramite(req, res) {
         try {
             const { idTramite } = req.params;
             const { estado } = req.body;
 
-            // Validar estado
-            const estadosValidos = ['pendiente', 'aprobado', 'rechazado', 'en revision'];
-            if (!estadosValidos.includes(estado)) {
+            // Validaciones
+            if (!idTramite || isNaN(idTramite)) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Estado no válido'
+                    message: 'ID de trámite inválido'
                 });
             }
 
-            const query = `
-                UPDATE Tramites 
-                SET estado = ?
-                WHERE idTramite = ?
-            `;
+            // Validar estado
+            const estadosValidos = ['pendiente', 'aprobado', 'rechazado', 'en revision'];
+            if (!estado || !estadosValidos.includes(estado)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Estado no válido. Estados permitidos: ' + estadosValidos.join(', ')
+                });
+            }
 
-            const [result] = await db.execute(query, [estado, idTramite]);
-
-            if (result.affectedRows === 0) {
+            // Verificar que el trámite existe
+            const tramiteExiste = await TramitesService.existeTramite(idTramite);
+            if (!tramiteExiste) {
                 return res.status(404).json({
                     success: false,
                     message: 'Trámite no encontrado'
+                });
+            }
+
+            const actualizado = await TramitesService.actualizarEstadoTramite(idTramite, estado);
+
+            if (!actualizado) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'No se pudo actualizar el trámite'
                 });
             }
 
@@ -165,8 +140,7 @@ class TramitesController {
     // Obtener tipos de trámites disponibles
     static async obtenerTiposTramites(req, res) {
         try {
-            const query = 'SELECT * FROM TiposTramites ORDER BY nombre';
-            const [tipos] = await db.execute(query);
+            const tipos = await TramitesService.obtenerTiposTramites();
             
             res.status(200).json({
                 success: true,
@@ -174,6 +148,40 @@ class TramitesController {
             });
         } catch (error) {
             console.error('Error al obtener tipos de trámites:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error interno del servidor'
+            });
+        }
+    }
+
+    // Obtener trámite por ID
+    static async obtenerTramitePorId(req, res) {
+        try {
+            const { idTramite } = req.params;
+            
+            if (!idTramite || isNaN(idTramite)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'ID de trámite inválido'
+                });
+            }
+            
+            const tramite = await TramitesService.obtenerTramitePorId(idTramite);
+            
+            if (!tramite) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Trámite no encontrado'
+                });
+            }
+            
+            res.status(200).json({
+                success: true,
+                data: tramite
+            });
+        } catch (error) {
+            console.error('Error al obtener trámite por ID:', error);
             res.status(500).json({
                 success: false,
                 message: 'Error interno del servidor'
