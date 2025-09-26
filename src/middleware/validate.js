@@ -1,5 +1,25 @@
 const Joi = require('joi');
 
+// --- Esquemas de Documentos Adaptados ---
+
+const documentoCreateSchema = Joi.object({
+  idTramite: Joi.number().integer().required().messages({
+    'any.required': 'ID de trámite requerido',
+    'number.base': 'El ID de trámite debe ser un número entero'
+  }),
+  // Files se validan en multer/middleware de archivos
+});
+
+const documentoUpdateSchema = Joi.object({
+  idTramite: Joi.number().integer().optional().messages({
+    'number.base': 'El ID de trámite debe ser un número entero'
+  }),
+  retained: Joi.boolean().default(true).required(),
+  // File en multer
+});
+
+// --- Otros Esquemas (Tomados del Ejemplo 2) ---
+
 const usuarioSchema = Joi.object({
   nombre: Joi.string().min(3).max(50).required(),
   email: Joi.string().email().required(),
@@ -171,7 +191,10 @@ const departamentoUpdateSchema = Joi.object({
   estado: Joi.string().valid('activo', 'inactivo').optional()
 }).min(1); // Al menos un campo para actualizar
 
+// --- Función de Validación Unificada ---
+
 const validate = (schema) => (req, res, next) => {
+  // Lista de esquemas que necesitan añadir 'isAdmin' basado en req.user
   const schemasWithIsAdmin = [
     passwordChangeSchema,
     updateUsuarioSchema,
@@ -180,20 +203,35 @@ const validate = (schema) => (req, res, next) => {
     referenciaCreateSchema,
     referenciaUpdateSchema,
   ];
+  
+  // Incluir los esquemas de documentos aquí si también manejaran 'isAdmin' condicionalmente
+  // Por ahora, se asume que no lo necesitan, por lo que el payload es req.body puro.
+  // const schemasWithIsAdmin = [..., documentoCreateSchema, documentoUpdateSchema];
+
   const payload = schemasWithIsAdmin.includes(schema) && req.user
     ? { ...req.body, isAdmin: req.user.idRol === 1 }
     : req.body;
+    
   const { error } = schema.validate(payload, { abortEarly: false });
+  
   if (error) {
     const err = new Error(error.details.map(detail => detail.message).join(', '));
     err.name = 'ValidationError';
-    err.code = 400;
-    return next(err);
+    err.code = 400; // Código de estado HTTP para "Bad Request"
+    return next(err); // Pasa el error al manejador de errores de Express
   }
+  
   next();
 };
 
+// --- Exportación de Funciones de Validación ---
+
 module.exports = {
+  // Funciones de validación de Documentos
+  validateDocumentoCreate: validate(documentoCreateSchema),
+  validateDocumentoUpdate: validate(documentoUpdateSchema),
+  
+  // Otras funciones de validación
   validateUsuario: validate(usuarioSchema),
   validateRegistro: validate(registroSchema),
   validateAdminCreate: validate(adminCreateSchema),

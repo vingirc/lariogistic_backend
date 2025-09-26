@@ -1,3 +1,22 @@
+// src/middleware/error.js
+
+class CustomError extends Error {
+  constructor(message, name = 'CustomError', status = 500) {
+    super(message);
+    this.name = name;
+    this.status = status;
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, CustomError);
+    }
+  }
+}
+
+class ForbiddenError extends CustomError {
+  constructor(message = 'Acceso denegado. No tienes permisos para realizar esta acción.') {
+    super(message, 'ForbiddenError', 403);
+  }
+}
+
 const { logger } = require('./logger');
 
 const errorHandler = (err, req, res, next) => {
@@ -15,14 +34,15 @@ const errorHandler = (err, req, res, next) => {
     ValidationError: 400,
     BadRequestError: 400,
     UnauthorizedError: 401,
-    ForbiddenError: 403,
+    ForbiddenError: 403, // Nombre de la clase de error definida
     NotFoundError: 404,
     ConflictError: 409,
     JsonWebTokenError: 401,
     MulterError: 400,
   };
 
-  let status = statusCodes[err.name] || 500;
+  // Priorizar el status de la clase de error CustomError/ForbiddenError
+  let status = err.status || statusCodes[err.name] || 500; 
   let errorMessage = err.message || 'Internal Server Error';
   let code = err.name || 'InternalServerError';
 
@@ -77,4 +97,4 @@ const errorHandler = (err, req, res, next) => {
   });
 };
 
-module.exports = { errorHandler };
+module.exports = { errorHandler, ForbiddenError, CustomError };

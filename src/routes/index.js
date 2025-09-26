@@ -72,6 +72,7 @@ router.use('/usuarios', loadRoute('usuariosRoutes'));
 router.use('/auth', loadRoute('authRoutes'));
 router.use('/departamentos', loadRoute('departamentosRoutes'));
 router.use('/historial', loadRoute('historialRoutes'));
+router.use('/documentos', loadRoute('documentosRoutes'));
 router.use('/tramites', loadRoute('tramitesRoutes'));
 
 module.exports = router;
