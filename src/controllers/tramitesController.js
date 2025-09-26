@@ -3,15 +3,17 @@ const { ForbiddenError } = require('../middleware/error'); // Asume que está ex
 
 module.exports = {
   /**
-   * Obtiene todos los trámites.
+   * Obtiene trámites según rol del usuario.
+   * - Admin (1): Todos.
+   * - Gerente (2): Solo de su departamento.
+   * - Empleado (3): Solo los propios.
    */
   getAll: async (req, res, next) => {
     try {
-      // Solo admins y gerentes pueden ver todos
-      if (!req.user || (req.user.idRol !== 1 && req.user.idRol !== 2)) {
-        throw new ForbiddenError('Solo administradores y gerentes pueden ver todos los trámites');
+      if (!req.user) {
+        throw new ForbiddenError('Autenticación requerida para acceder a trámites');
       }
-      const tramites = await tramitesService.getAll();
+      const tramites = await tramitesService.getAll(req.user);
       res.json({ 
         success: true, 
         data: tramites, 
@@ -23,16 +25,15 @@ module.exports = {
   },
 
   /**
-   * Obtiene un trámite por ID.
+   * Obtiene un trámite por ID, verificando permisos por rol.
    */
   getById: async (req, res, next) => {
     try {
-      const { id } = req.params;
-      const tramite = await tramitesService.findById(parseInt(id));
-      // Cualquier usuario autenticado puede ver, pero verifica ownership si es empleado
-      if (req.user.idRol === 3 && tramite.idUsuario !== req.user.idUsuario) {
-        throw new ForbiddenError('No tienes permisos para ver este trámite');
+      if (!req.user) {
+        throw new ForbiddenError('Autenticación requerida para acceder al trámite');
       }
+      const { id } = req.params;
+      const tramite = await tramitesService.findById(parseInt(id), req.user);
       res.json({ 
         success: true, 
         data: tramite, 
@@ -82,7 +83,8 @@ module.exports = {
       const tramite = await tramitesService.update(
         parseInt(id), 
         { estado, observaciones }, 
-        isAdmin
+        isAdmin,
+        req.user // Pasa user para verificación en service
       );
       res.json({ 
         success: true, 
@@ -104,7 +106,7 @@ module.exports = {
       if (!req.user || req.user.idRol !== 1) {
         throw new ForbiddenError('Solo administradores pueden eliminar trámites');
       }
-      const result = await tramitesService.delete(parseInt(id), req.user.idUsuario);
+      const result = await tramitesService.delete(parseInt(id), req.user.idUsuario, req.user);
       res.json({ 
         success: true, 
         data: result, 

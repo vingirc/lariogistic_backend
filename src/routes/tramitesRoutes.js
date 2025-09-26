@@ -104,7 +104,7 @@ const { privateLimiter } = require('../middleware/rateLimit'); // Usa privateLim
  *       500:
  *         $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/', authenticate, restrictTo(1, 2), privateLimiter, tramitesController.getAll);
+router.get('/', authenticate, privateLimiter, tramitesController.getAll);
 
 /**
  * @swagger
