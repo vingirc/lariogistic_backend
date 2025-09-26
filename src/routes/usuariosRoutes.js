@@ -117,11 +117,12 @@ router.get('/:id', publicLimiter, authenticate, usuariosController.getById);
  * @swagger
  * /api/usuarios:
  *   post:
- *     summary: Crear un nuevo usuario (solo administradores)
+ *     summary: Crear un nuevo usuario (administradores - gerentes o empleados ---- gerentes - solo empleados)
  *     description: |
  *       Crea un nuevo usuario con un rol específico.
- *       Roles disponibles: 2 = Vendedor, 3 = Cliente.
- *       Solo accesible para administradores.
+ *       Roles disponibles: 2 = Gerente, 3 = Empleado.
+ *       Los administradores pueden crear gerentes o empleados.
+ *       Los gerentes solo pueden crear empleados.
  *     tags: [Usuarios]
  *     security:
  *       - bearerAuth: []
@@ -147,6 +148,9 @@ router.get('/:id', publicLimiter, authenticate, usuariosController.getById);
  *                 type: integer
  *                 description: Rol del usuario (2 = Vendedor, 3 = Cliente)
  *                 enum: [2, 3]
+ *               idDepartamento:
+ *                 type: integer
+ *                 description: Rol del departamento (solo administradores)
  *             required: [nombre, email, password, idRol]
  *           example:
  *             nombre: María Gómez
@@ -194,84 +198,7 @@ router.get('/:id', publicLimiter, authenticate, usuariosController.getById);
  *               error: Demasiadas solicitudes, intenta de nuevo en 15 minutos
  *               code: 429
  */
-router.post('/', adminLimiter, authenticate, restrictTo(1), validateAdminCreate, usuariosController.create);
-
-/**
- * @swagger
- * /api/usuarios/register:
- *   post:
- *     summary: Registrar un nuevo usuario
- *     description: |
- *       Registra un nuevo cliente en la plataforma.
- *       No requiere autenticación previa.
- *       El usuario registrado tendrá el rol de cliente (idRol = 3) por defecto.
- *       Límite de 5 registros por hora.
- *     tags: [Usuarios]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               nombre:
- *                 type: string
- *                 description: Nombre completo del usuario
- *               email:
- *                 type: string
- *                 format: email
- *                 description: Correo electrónico único
- *               password:
- *                 type: string
- *                 format: password
- *                 description: Contraseña (mínimo 8 caracteres, con letras y números)
- *             required: [nombre, email, password]
- *           example:
- *             nombre: Ana López
- *             email: ana.lopez@lariogistic.com
- *             password: SecurePass123!
- *     responses:
- *       201:
- *         description: Cliente registrado exitosamente
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Usuario'
- *             example:
- *               idUsuario: 2
- *               nombre: Ana López
- *               email: ana.lopez@lariogistic.com
- *               idRol: 3
- *               estado: activo
- *       400:
- *         description: Error de validación
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               error: El correo electrónico no es válido
- *               code: 400
- *       409:
- *         description: Correo ya registrado
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               error: El correo ya está registrado
- *               code: 409
- *       429:
- *         description: Demasiados intentos de registro
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *             example:
- *               error: Demasiados intentos, intenta de nuevo en 15 minutos
- *               code: 429
- */
-router.post('/register', registerLimiter, validateRegistro, usuariosController.register);
+router.post('/', adminLimiter, authenticate, restrictTo(1, 2), validateAdminCreate, usuariosController.create);
 
 /**
  * @swagger

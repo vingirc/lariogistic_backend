@@ -27,8 +27,9 @@ const adminCreateSchema = Joi.object({
   password: Joi.string().min(8).required(),
   idRol: Joi.number().integer().valid(2, 3).required().messages({
     'number.base': 'El rol debe ser un número',
-    'number.valid': 'Rol inválido: debe ser 2 (vendedor) o 3 (cliente)',
+    'number.valid': 'Rol inválido: debe ser 2 (gerente) o 3 (empleado)',
   }),
+  idDepartamento: Joi.number().integer().optional().allow(null),
   isAdmin: Joi.boolean().optional(),
 });
 

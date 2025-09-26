@@ -42,38 +42,39 @@ module.exports = {
 
   create: async (req, res, next) => {
     try {
-      if (!req.user || req.user.idRol !== 1) {
-        const err = new Error('Acceso denegado: Solo administradores pueden crear usuarios');
+      if (!req.user || req.user.idRol === 3) {
+        const err = new Error('Acceso denegado: Los empleados no pueden crear usuarios');
         err.name = 'ForbiddenError';
         throw err;
       }
+
       const { nombre, email, password, idRol } = req.body;
+      let user;
+
       if (![2, 3].includes(idRol)) {
         const err = new Error('Rol inválido: Solo se pueden crear clientes o vendedores');
         err.name = 'BadRequestError';
         throw err;
       }
-      const user = await usuarioService.create({ nombre, email, password, idRol }, req.user.idUsuario);
+
+      if (req.user.idRol === 2 && idRol !== 3) {
+        const err = new Error('Acceso denegado: Los gerentes solo pueden crear clientes');
+        err.name = 'ForbiddenError';
+        throw err;
+      }
+
+      if (req.user.idRol === 2 && idRol === 3) {
+        user = await usuarioService.create({ nombre, email, password, idRol}, req.user.idUsuario);
+      } else { // Admin creando cualquier tipo de usuario
+        const { idDepartamento } = req.body;
+        user = await usuarioService.create({ nombre, email, password, idRol, idDepartamento }, req.user.idUsuario);
+      }
+
       const { password: _, ...safeUser } = user; // Excluir contraseña
       res.status(201).json({
         success: true,
         data: safeUser,
         message: 'Usuario creado con éxito',
-      });
-    } catch (err) {
-      next(err);
-    }
-  },
-
-  register: async (req, res, next) => {
-    try {
-      const { nombre, email, password } = req.body;
-      const user = await usuarioService.createClient({ nombre, email, password });
-      const { password: _, ...safeUser } = user; // Excluir contraseña
-      res.status(201).json({
-        success: true,
-        data: safeUser,
-        message: 'Cliente registrado con éxito',
       });
     } catch (err) {
       next(err);

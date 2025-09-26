@@ -57,20 +57,27 @@ const usuarioService = {
     return rows[0];
   },
 
-  async create({ nombre, email, password, googleId, idRol = 3 }, adminId = null) {
-    if (![1, 2, 3].includes(idRol)) {
+  async create({ nombre, email, password, googleId, idRol = 3, idDepartamento = null }, adminId = null) {
+    if (![2, 3].includes(idRol)) {
       throw new Error('Rol inválido');
     }
+
+    if (!idDepartamento) {
+      const [rows] = await pool.query('SELECT idDepartamento FROM Usuarios WHERE idUsuario = ?', [adminId]);
+      
+      if (rows.length === 0) {
+        throw new Error('Usuario no encontrado');
+      }
+
+      idDepartamento = rows[0].idDepartamento;
+    }
+
     const hashedPassword = password ? await bcrypt.hash(password, 12) : null;
     const [result] = await pool.query(
-      'INSERT INTO Usuarios (nombre, email, password, googleId, idRol) VALUES (?, ?, ?, ?, ?)',
-      [nombre, email, hashedPassword, googleId, idRol]
+      'INSERT INTO Usuarios (nombre, email, password, googleId, idRol, idDepartamento) VALUES (?, ?, ?, ?, ?, ?)',
+      [nombre, email, hashedPassword, googleId, idRol, idDepartamento]
     );
-    return { idUsuario: result.insertId, nombre, email, idRol };
-  },
-
-  async createClient({ nombre, email, password, googleId }) {
-    return this.create({ nombre, email, password, googleId, idRol: 3 });
+    return { idUsuario: result.insertId, nombre, email, idRol, idDepartamento };
   },
 
   async update(idUsuario, { nombre, telefono, direccion, password, idRol, estado, googleId }, isAdmin = false, adminId = null) {
