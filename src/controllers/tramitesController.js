@@ -1,6 +1,27 @@
 const TramitesService = require('../services/tramitesService');
 
 class TramitesController {
+    // NUEVO MÉTODO: Obtener trámites del usuario autenticado
+    static async obtenerMisTramites(req, res) {
+        try {
+            // El idUsuario viene del middleware de autenticación
+            const idUsuario = req.user.idUsuario;
+            
+            const tramites = await TramitesService.obtenerTramitesPorUsuario(idUsuario);
+            
+            res.status(200).json({
+                success: true,
+                data: tramites
+            });
+        } catch (error) {
+            console.error('Error al obtener mis trámites:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error interno del servidor'
+            });
+        }
+    }
+
     // Obtener todos los trámites de un usuario
     static async obtenerTramitesPorUsuario(req, res) {
         try {
@@ -33,18 +54,20 @@ class TramitesController {
     static async crearTramite(req, res) {
         try {
             const { 
-                idUsuario, 
                 idTipoTramite, 
                 descripcion, 
                 fechaInicio, 
                 fechaFin 
             } = req.body;
 
+            // El idUsuario viene del usuario autenticado
+            const idUsuario = req.user.idUsuario;
+
             // Validaciones básicas
-            if (!idUsuario || !idTipoTramite) {
+            if (!idTipoTramite) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Usuario y tipo de trámite son requeridos'
+                    message: 'Tipo de trámite es requerido'
                 });
             }
 
