@@ -58,7 +58,7 @@ const departamentosService = {
       [nombre, descripcion || null]
     );
     const newId = result.insertId;
-    // Log en historial
+    // Log en historial (sin idTramite, ya que no es un trámite)
     await historialService.log(userId, null, `Creación del departamento: ${nombre}`);
     return { idDepartamento: newId, nombre, descripcion, estado: 'activo' };
   },
@@ -122,9 +122,9 @@ const departamentosService = {
       params
     );
 
-    // Log en historial
+    // Log en historial (sin idTramite, ya que no es un trámite)
     const accion = estado === 'inactivo' ? 'Inactivación' : 'Actualización';
-    await historialService.log(userId, id, `${accion} del departamento: ${departamento.nombre}`);
+    await historialService.log(userId, null, `${accion} del departamento: ${departamento.nombre}`);
     return { ...departamento, ...(nombre && { nombre }), ...(descripcion && { descripcion }), ...(estado && { estado }) };
   },
 
@@ -144,8 +144,8 @@ const departamentosService = {
       'UPDATE Departamentos SET estado = "inactivo" WHERE idDepartamento = ?',
       [id]
     );
-    // Log en historial
-    await historialService.log(userId, id, `Inactivación del departamento: ${departamento.nombre}`);
+    // Log en historial (sin idTramite, ya que no es un trámite)
+    await historialService.log(userId, null, `Inactivación del departamento: ${departamento.nombre}`);
   }
 };
 
