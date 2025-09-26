@@ -52,19 +52,19 @@ module.exports = {
       let user;
 
       if (![2, 3].includes(idRol)) {
-        const err = new Error('Rol inválido: Solo se pueden crear clientes o vendedores');
+        const err = new Error('Rol inválido: Solo se pueden crear gerentes o empleados');
         err.name = 'BadRequestError';
         throw err;
       }
 
       if (req.user.idRol === 2 && idRol !== 3) {
-        const err = new Error('Acceso denegado: Los gerentes solo pueden crear clientes');
+        const err = new Error('Acceso denegado: Los gerentes solo pueden crear empleados');
         err.name = 'ForbiddenError';
         throw err;
       }
 
       if (req.user.idRol === 2 && idRol === 3) {
-        user = await usuarioService.create({ nombre, email, password, idRol}, req.user.idUsuario);
+        user = await usuarioService.create({ nombre, email, password, idRol }, req.user.idUsuario);
       } else { // Admin creando cualquier tipo de usuario
         const { idDepartamento } = req.body;
         user = await usuarioService.create({ nombre, email, password, idRol, idDepartamento }, req.user.idUsuario);
@@ -98,12 +98,13 @@ module.exports = {
           message: 'Usuario existente retornado con éxito',
         });
       }
-      user = await usuarioService.createClient({ nombre, email, googleId });
+      // Corregido: usar create en lugar de createClient inexistente, con idRol=3 y adminId=null para dept null
+      user = await usuarioService.create({ nombre, email, googleId, idRol: 3 });
       const { password: _, ...safeUser } = user; // Excluir contraseña
       res.status(201).json({
         success: true,
         data: safeUser,
-        message: 'Cliente registrado con Google con éxito',
+        message: 'Empleado registrado con Google con éxito',
       });
     } catch (err) {
       next(err);

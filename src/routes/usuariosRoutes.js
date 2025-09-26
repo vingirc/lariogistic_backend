@@ -30,6 +30,7 @@ const { publicLimiter, registerLimiter, updateLimiter, passwordChangeLimiter, ad
  *                 telefono: +1234567890
  *                 direccion: Calle Falsa 123
  *                 idRol: 1
+ *                 idDepartamento: null
  *                 estado: activo
  *       403:
  *         description: Acceso denegado (no administrador)
@@ -57,7 +58,7 @@ router.get('/', adminLimiter, authenticate, restrictTo(1), usuariosController.ge
  * /api/usuarios/{id}:
  *   get:
  *     summary: Obtener un usuario por ID
- *     description: Devuelve los detalles de un usuario. Los administradores pueden ver cualquier usuario, los clientes solo su propio perfil.
+ *     description: Devuelve los detalles de un usuario. Los administradores pueden ver cualquier usuario, los gerentes y empleados solo su propio perfil.
  *     tags: [Usuarios]
  *     security:
  *       - bearerAuth: []
@@ -82,6 +83,7 @@ router.get('/', adminLimiter, authenticate, restrictTo(1), usuariosController.ge
  *               telefono: +1234567890
  *               direccion: Calle Falsa 123
  *               idRol: 1
+ *               idDepartamento: null
  *               estado: activo
  *       403:
  *         description: Acceso denegado
@@ -146,17 +148,18 @@ router.get('/:id', publicLimiter, authenticate, usuariosController.getById);
  *                 description: Contraseña (mínimo 8 caracteres)
  *               idRol:
  *                 type: integer
- *                 description: Rol del usuario (2 = Vendedor, 3 = Cliente)
+ *                 description: Rol del usuario (2 = Gerente, 3 = Empleado)
  *                 enum: [2, 3]
  *               idDepartamento:
  *                 type: integer
- *                 description: Rol del departamento (solo administradores)
+ *                 description: ID del departamento (solo administradores)
  *             required: [nombre, email, password, idRol]
  *           example:
  *             nombre: María Gómez
  *             email: maria@lariogistic.com
  *             password: SecurePass123!
  *             idRol: 3
+ *             idDepartamento: 1
  *     responses:
  *       201:
  *         description: Usuario creado exitosamente
@@ -169,6 +172,7 @@ router.get('/:id', publicLimiter, authenticate, usuariosController.getById);
  *               nombre: María Gómez
  *               email: maria@lariogistic.com
  *               idRol: 3
+ *               idDepartamento: 1
  *               estado: activo
  *       403:
  *         description: Acceso denegado (no administrador)
@@ -204,9 +208,9 @@ router.post('/', adminLimiter, authenticate, restrictTo(1, 2), validateAdminCrea
  * @swagger
  * /api/usuarios/register-google:
  *   post:
- *     summary: Registrar un nuevo cliente con Google
+ *     summary: Registrar un nuevo empleado con Google
  *     description: |
- *       Registra un nuevo cliente usando credenciales de Google.
+ *       Registra un nuevo empleado usando credenciales de Google.
  *       No requiere autenticación previa.
  *       Límite de 5 registros por hora.
  *     tags: [Usuarios]
@@ -234,7 +238,7 @@ router.post('/', adminLimiter, authenticate, restrictTo(1, 2), validateAdminCrea
  *             googleId: 1234567890
  *     responses:
  *       201:
- *         description: Cliente registrado exitosamente
+ *         description: Empleado registrado exitosamente
  *         content:
  *           application/json:
  *             schema:
@@ -244,6 +248,7 @@ router.post('/', adminLimiter, authenticate, restrictTo(1, 2), validateAdminCrea
  *               nombre: Ana López
  *               email: ana.lopez@lariogistic.com
  *               idRol: 3
+ *               idDepartamento: null
  *               estado: activo
  *       200:
  *         description: Usuario ya registrado
@@ -256,6 +261,7 @@ router.post('/', adminLimiter, authenticate, restrictTo(1, 2), validateAdminCrea
  *               nombre: Ana López
  *               email: ana.lopez@lariogistic.com
  *               idRol: 3
+ *               idDepartamento: null
  *               estado: activo
  *       409:
  *         description: Correo ya registrado con otro método
@@ -285,8 +291,8 @@ router.post('/register-google', registerLimiter, validateRegistro, usuariosContr
  *     summary: Actualizar perfil de usuario
  *     description: |
  *       Actualiza los datos de un usuario.
- *       Los clientes pueden editar su propio perfil (nombre, teléfono, dirección, contraseña).
- *       Los administradores también pueden modificar el rol (1 = Admin, 2 = Vendedor, 3 = Cliente) y el estado.
+ *       Los empleados pueden editar su propio perfil (nombre, teléfono, dirección, contraseña).
+ *       Los administradores también pueden modificar el rol (1 = Administrador, 2 = Gerente, 3 = Empleado), el estado y el departamento.
  *     tags: [Usuarios]
  *     security:
  *       - bearerAuth: []
@@ -319,12 +325,15 @@ router.post('/register-google', registerLimiter, validateRegistro, usuariosContr
  *                 description: Nueva contraseña (mínimo 8 caracteres)
  *               idRol:
  *                 type: integer
- *                 description: Rol del usuario (solo administradores, 1 = Admin, 2 = Vendedor, 3 = Cliente)
+ *                 description: Rol del usuario (solo administradores, 1 = Administrador, 2 = Gerente, 3 = Empleado)
  *                 enum: [1, 2, 3]
  *               estado:
  *                 type: string
  *                 description: Estado del usuario (solo administradores)
  *                 enum: [activo, inactivo]
+ *               idDepartamento:
+ *                 type: integer
+ *                 description: ID del departamento del usuario (solo administradores)
  *           example:
  *             nombre: Ana López Actualizada
  *             telefono: +987654321
@@ -332,9 +341,10 @@ router.post('/register-google', registerLimiter, validateRegistro, usuariosContr
  *             password: NewPass123!
  *             idRol: 3
  *             estado: activo
+ *             idDepartamento: 1
  *     responses:
  *       200:
- *         description: Registro actualizado exitosamente
+ *         description: Usuario actualizado exitosamente
  *         content:
  *           application/json:
  *             schema:
@@ -346,6 +356,7 @@ router.post('/register-google', registerLimiter, validateRegistro, usuariosContr
  *               telefono: +987654321
  *               direccion: Avenida Siempre Viva 456
  *               idRol: 3
+ *               idDepartamento: 1
  *               estado: activo
  *       400:
  *         description: Error de validación
@@ -366,7 +377,7 @@ router.post('/register-google', registerLimiter, validateRegistro, usuariosContr
  *               error: No tienes permisos para modificar este usuario
  *               code: 403
  *       404:
- *         description: Registro no encontrado
+ *         description: Usuario no encontrado
  *         content:
  *           application/json:
  *             schema:
@@ -456,7 +467,7 @@ router.put('/:id', updateLimiter, authenticate, validateUpdateUsuario, usuariosC
  *               error: Contraseña actual incorrecta
  *               code: 403
  *       404:
- *         description: Registro no encontrado
+ *         description: Usuario no encontrado
  *         content:
  *           application/json:
  *             schema:

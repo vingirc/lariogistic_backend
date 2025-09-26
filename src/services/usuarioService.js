@@ -12,7 +12,7 @@ const usuarioService = {
         estado, 
         telefono, 
         direccion,
-        estado,
+        idDepartamento,
         googleId
       FROM Usuarios
       WHERE idRol != 1
@@ -32,6 +32,7 @@ const usuarioService = {
         idRol, 
         estado, 
         password, 
+        idDepartamento,
         googleId
       FROM Usuarios
       WHERE idUsuario = ?
@@ -50,6 +51,7 @@ const usuarioService = {
         idRol, 
         estado, 
         password, 
+        idDepartamento,
         googleId
       FROM Usuarios
       WHERE email = ?
@@ -62,30 +64,31 @@ const usuarioService = {
       throw new Error('Rol inválido');
     }
 
-    if (!idDepartamento) {
+    // Modificado: Solo consultar departamento si adminId existe y no se proporciona idDepartamento
+    if (!idDepartamento && adminId) {
       const [rows] = await pool.query('SELECT idDepartamento FROM Usuarios WHERE idUsuario = ?', [adminId]);
-      
       if (rows.length === 0) {
         throw new Error('Usuario no encontrado');
       }
-
       idDepartamento = rows[0].idDepartamento;
     }
+    // Si no hay adminId (e.g., registro Google), idDepartamento queda en null
 
     const hashedPassword = password ? await bcrypt.hash(password, 12) : null;
     const [result] = await pool.query(
       'INSERT INTO Usuarios (nombre, email, password, googleId, idRol, idDepartamento) VALUES (?, ?, ?, ?, ?, ?)',
       [nombre, email, hashedPassword, googleId, idRol, idDepartamento]
     );
-    return { idUsuario: result.insertId, nombre, email, idRol, idDepartamento };
+    // Retornar datos completos consultando findById para consistencia
+    return await this.findById(result.insertId);
   },
 
-  async update(idUsuario, { nombre, telefono, direccion, password, idRol, estado, googleId }, isAdmin = false, adminId = null) {
+  async update(idUsuario, { nombre, telefono, direccion, password, idRol, estado, googleId, idDepartamento }, isAdmin = false, adminId = null) {
     const user = await this.findById(idUsuario);
     if (!user) {
       throw new Error('Usuario no encontrado');
     }
-    // Prevent admins from modifying another admin's account
+    // Prevenir que admins modifiquen otra cuenta de admin
     if (isAdmin && user.idRol === 1 && user.idUsuario !== adminId) {
       throw new Error('No se puede modificar la cuenta de otro administrador');
     }
@@ -109,24 +112,29 @@ const usuarioService = {
       updates.push('password = ?');
       values.push(hashedPassword);
     }
-    if (googleId) {
+    if (googleId !== undefined) {
       updates.push('googleId = ?');
       values.push(googleId);
     }
-    // Only allow idRol and estado updates for non-admin users
-    if (isAdmin && idRol && user.idRol !== 1) {
+    // Solo permitir actualizaciones de idRol y estado para usuarios no-admin
+    if (isAdmin && idRol !== undefined && user.idRol !== 1) {
       if (![2, 3].includes(idRol)) {
-        throw new Error('Rol inválido: Solo se pueden asignar roles de vendedor o cliente');
+        throw new Error('Rol inválido: Solo se pueden asignar roles de gerente o empleado');
       }
       updates.push('idRol = ?');
       values.push(idRol);
     }
-    if (isAdmin && estado && user.idRol !== 1) {
+    if (isAdmin && estado !== undefined && user.idRol !== 1) {
       if (!['activo', 'inactivo'].includes(estado)) {
         throw new Error('Estado inválido: Solo se puede asignar activo o inactivo');
       }
       updates.push('estado = ?');
       values.push(estado);
+    }
+    // Nueva lógica: Permitir a admins actualizar idDepartamento para usuarios no-admin
+    if (isAdmin && idDepartamento !== undefined && user.idRol !== 1) {
+      updates.push('idDepartamento = ?');
+      values.push(idDepartamento);
     }
 
     if (updates.length === 0) {
@@ -148,7 +156,7 @@ const usuarioService = {
     if (!user) {
       throw new Error('Usuario no encontrado');
     }
-    // Prevent admins from changing another admin's password (except their own)
+    // Prevenir que admins cambien contraseña de otro admin (excepto la propia)
     if (isAdmin && user.idRol === 1 && user.idUsuario !== adminId) {
       throw new Error('No se puede cambiar la contraseña de otro administrador');
     }
@@ -170,11 +178,12 @@ const usuarioService = {
     if (!user) {
       throw new Error('Usuario no encontrado');
     }
-    // Prevent admins from deleting another admin's account
+    // Prevenir que admins eliminen otra cuenta de admin
     if (user.idRol === 1 && user.idUsuario !== adminId) {
       throw new Error('No se puede eliminar la cuenta de otro administrador');
     }
-    const [result] = await pool.query('DELETE FROM Usuarios WHERE idUsuario = ?', [idUsuario]);
+    // Cambiado a soft delete: actualizar estado a 'inactivo' en lugar de DELETE para trazabilidad
+    const [result] = await pool.query('UPDATE Usuarios SET estado = "inactivo" WHERE idUsuario = ?', [idUsuario]);
     if (result.affectedRows === 0) {
       throw new Error('Usuario no encontrado');
     }

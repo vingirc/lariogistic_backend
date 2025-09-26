@@ -40,6 +40,7 @@ const updateUsuarioSchema = Joi.object({
   password: Joi.string().min(8).optional(),
   idRol: Joi.number().integer().valid(1, 2, 3).optional(),
   estado: Joi.string().valid('activo', 'inactivo').optional(),
+  idDepartamento: Joi.number().integer().optional().allow(null),
   isAdmin: Joi.boolean().optional(),
 }).min(1);
 
