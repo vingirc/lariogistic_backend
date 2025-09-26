@@ -61,7 +61,7 @@ const usuarioService = {
     if (![1, 2, 3].includes(idRol)) {
       throw new Error('Rol inválido');
     }
-    const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
+    const hashedPassword = password ? await bcrypt.hash(password, 12) : null;
     const [result] = await pool.query(
       'INSERT INTO Usuarios (nombre, email, password, googleId, idRol) VALUES (?, ?, ?, ?, ?)',
       [nombre, email, hashedPassword, googleId, idRol]
@@ -98,7 +98,7 @@ const usuarioService = {
       values.push(direccion);
     }
     if (password) {
-      const hashedPassword = await bcrypt.hash(password, 10);
+      const hashedPassword = await bcrypt.hash(password, 12);
       updates.push('password = ?');
       values.push(hashedPassword);
     }
@@ -144,7 +144,7 @@ const usuarioService = {
     if (!isAdmin && (!user.password || !(await bcrypt.compare(currentPassword, user.password)))) {
       throw new Error('Contraseña actual incorrecta');
     }
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
     const [result] = await pool.query(
       'UPDATE Usuarios SET password = ? WHERE idUsuario = ?',
       [hashedPassword, idUsuario]
