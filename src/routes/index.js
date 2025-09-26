@@ -64,7 +64,7 @@ const loadRoute = (routeName) => {
 
 // Base route
 router.get('/', (req, res) => {
-  res.json({ message: 'Bienvenido a la API Financiera' });
+  res.json({ message: 'Bienvenido a la API lariogistic' });
 });
 
 // Cargar rutas

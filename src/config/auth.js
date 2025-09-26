@@ -12,7 +12,7 @@ module.exports = {
     clientId: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     redirectUri: process.env.NODE_ENV === 'production'
-      ? 'https://financiera-backend.vercel.app/api/auth/google/callback'
+      ? 'https://lariogistic-backend.vercel.app/api/auth/google/callback'
       : 'http://localhost:3000/api/auth/google/callback',
     mobileRedirectUri: 'com.carsget.financiamiento:/oauthredirect',
   },

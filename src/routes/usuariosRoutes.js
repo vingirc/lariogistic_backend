@@ -26,7 +26,7 @@ const { publicLimiter, registerLimiter, updateLimiter, passwordChangeLimiter, ad
  *             example:
  *               - idUsuario: 1
  *                 nombre: Juan Pérez
- *                 email: juan@financiera.com
+ *                 email: juan@lariogistic.com
  *                 telefono: +1234567890
  *                 direccion: Calle Falsa 123
  *                 idRol: 1
@@ -78,7 +78,7 @@ router.get('/', adminLimiter, authenticate, restrictTo(1), usuariosController.ge
  *             example:
  *               idUsuario: 1
  *               nombre: Juan Pérez
- *               email: juan@financiera.com
+ *               email: juan@lariogistic.com
  *               telefono: +1234567890
  *               direccion: Calle Falsa 123
  *               idRol: 1
@@ -150,7 +150,7 @@ router.get('/:id', publicLimiter, authenticate, usuariosController.getById);
  *             required: [nombre, email, password, idRol]
  *           example:
  *             nombre: María Gómez
- *             email: maria@financiera.com
+ *             email: maria@lariogistic.com
  *             password: SecurePass123!
  *             idRol: 3
  *     responses:
@@ -163,7 +163,7 @@ router.get('/:id', publicLimiter, authenticate, usuariosController.getById);
  *             example:
  *               idUsuario: 2
  *               nombre: María Gómez
- *               email: maria@financiera.com
+ *               email: maria@lariogistic.com
  *               idRol: 3
  *               estado: activo
  *       403:
@@ -228,7 +228,7 @@ router.post('/', adminLimiter, authenticate, restrictTo(1), validateAdminCreate,
  *             required: [nombre, email, password]
  *           example:
  *             nombre: Ana López
- *             email: ana.lopez@financiera.com
+ *             email: ana.lopez@lariogistic.com
  *             password: SecurePass123!
  *     responses:
  *       201:
@@ -240,7 +240,7 @@ router.post('/', adminLimiter, authenticate, restrictTo(1), validateAdminCreate,
  *             example:
  *               idUsuario: 2
  *               nombre: Ana López
- *               email: ana.lopez@financiera.com
+ *               email: ana.lopez@lariogistic.com
  *               idRol: 3
  *               estado: activo
  *       400:
@@ -303,7 +303,7 @@ router.post('/register', registerLimiter, validateRegistro, usuariosController.r
  *             required: [nombre, email, googleId]
  *           example:
  *             nombre: Ana López
- *             email: ana.lopez@financiera.com
+ *             email: ana.lopez@lariogistic.com
  *             googleId: 1234567890
  *     responses:
  *       201:
@@ -315,7 +315,7 @@ router.post('/register', registerLimiter, validateRegistro, usuariosController.r
  *             example:
  *               idUsuario: 2
  *               nombre: Ana López
- *               email: ana.lopez@financiera.com
+ *               email: ana.lopez@lariogistic.com
  *               idRol: 3
  *               estado: activo
  *       200:
@@ -327,7 +327,7 @@ router.post('/register', registerLimiter, validateRegistro, usuariosController.r
  *             example:
  *               idUsuario: 2
  *               nombre: Ana López
- *               email: ana.lopez@financiera.com
+ *               email: ana.lopez@lariogistic.com
  *               idRol: 3
  *               estado: activo
  *       409:
@@ -415,7 +415,7 @@ router.post('/register-google', registerLimiter, validateRegistro, usuariosContr
  *             example:
  *               idUsuario: 2
  *               nombre: Ana López Actualizada
- *               email: ana.lopez@financiera.com
+ *               email: ana.lopez@lariogistic.com
  *               telefono: +987654321
  *               direccion: Avenida Siempre Viva 456
  *               idRol: 3

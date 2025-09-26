@@ -80,7 +80,7 @@ try {
   // Base route
   app.get('/', apiLimiter, (req, res) => {
     res.json({
-      message: 'Bienvenido a la API Financiera',
+      message: 'Bienvenido a la API lariogistic',
       status: 'OK',
       version: '1.0.0',
       documentation: '/api-docs/',

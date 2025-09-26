@@ -29,7 +29,7 @@ const { validateLogin, validateRefresh } = require('../middleware/validate');
  *                 description: Contraseña del usuario (mínimo 8 caracteres)
  *             required: [email, password]
  *           example:
- *             email: usuario@financiera.com
+ *             email: usuario@lariogistic.com
  *             password: Password123!
  *     responses:
  *       200:
@@ -44,7 +44,7 @@ const { validateLogin, validateRefresh } = require('../middleware/validate');
  *               user:
  *                 idUsuario: 1
  *                 nombre: Juan Pérez
- *                 email: usuario@financiera.com
+ *                 email: usuario@lariogistic.com
  *                 idRol: 3
  *       400:
  *         description: Validación fallida
@@ -115,7 +115,7 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
  *               user:
  *                 idUsuario: 1
  *                 nombre: Juan Pérez
- *                 email: usuario@financiera.com
+ *                 email: usuario@lariogistic.com
  *                 idRol: 3
  *               idUsuario: 1
  *       401:
@@ -169,7 +169,7 @@ router.get('/google/callback', passport.authenticate('google', { session: false 
  *               user:
  *                 idUsuario: 1
  *                 nombre: Juan Pérez
- *                 email: usuario@financiera.com
+ *                 email: usuario@lariogistic.com
  *                 idRol: 3
  *               idUsuario: 1
  *       400:
@@ -235,7 +235,7 @@ router.post('/google/callback', loginLimiter, authController.googleCallbackMobil
  *               user:
  *                 idUsuario: 1
  *                 nombre: Juan Pérez
- *                 email: usuario@financiera.com
+ *                 email: usuario@lariogistic.com
  *                 idRol: 3
  *       400:
  *         description: Validación fallida
