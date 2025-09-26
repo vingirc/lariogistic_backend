@@ -2,8 +2,25 @@ const pool = require('../config/db');
 const bcrypt = require('bcrypt');
 
 const usuarioService = {
-  async getAll() {
-    const [rows] = await pool.query(`
+  async getAll(idUsuario = null) {
+    let rows;
+    let idDepartamento = null;
+
+    if (idUsuario) {
+      // Obtener el departamento del usuario (asumiendo que es gerente)
+      const [userRows] = await pool.query('SELECT idDepartamento FROM Usuarios WHERE idUsuario = ?', [idUsuario]);
+      if (userRows.length === 0) {
+        throw new Error('Usuario no encontrado');
+      }
+      idDepartamento = userRows[0].idDepartamento;
+      if (!idDepartamento) {
+        throw new Error('El usuario no tiene un departamento asignado');
+      }
+    }
+
+
+    if (!idDepartamento) {
+      [rows] = await pool.query(`
       SELECT 
         idUsuario, 
         nombre, 
@@ -18,6 +35,24 @@ const usuarioService = {
       WHERE idRol != 1
       ORDER BY nombre DESC
     `);
+    } else {
+      [rows] = await pool.query(`
+      SELECT 
+        idUsuario, 
+        nombre, 
+        email, 
+        idRol, 
+        estado, 
+        telefono, 
+        direccion,
+        idDepartamento,
+        googleId
+      FROM Usuarios
+      WHERE idRol = 3 AND
+      idDepartamento = ?
+      ORDER BY nombre DESC
+    `, [idDepartamento]);
+    }
     return rows;
   },
 
@@ -94,7 +129,7 @@ const usuarioService = {
     }
     const updates = [];
     const values = [];
-    
+
     if (nombre) {
       updates.push('nombre = ?');
       values.push(nombre);
@@ -144,7 +179,7 @@ const usuarioService = {
     values.push(idUsuario);
     const query = `UPDATE Usuarios SET ${updates.join(', ')} WHERE idUsuario = ?`;
     const [result] = await pool.query(query, values);
-    
+
     if (result.affectedRows === 0) {
       throw new Error('Usuario no encontrado');
     }

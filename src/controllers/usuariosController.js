@@ -4,7 +4,15 @@ const usuarioService = require('../services/usuarioService');
 module.exports = {
   getAll: async (req, res, next) => {
     try {
-      const users = await usuarioService.getAll();
+      let users;
+
+      if (req.user.idRol === 2) {
+        // Gerente: obtener empleados de su departamento
+        users = await usuarioService.getAll(req.user.idUsuario);
+      } else {
+        users = await usuarioService.getAll();        
+      }
+
       res.json({
         success: true,
         data: users,

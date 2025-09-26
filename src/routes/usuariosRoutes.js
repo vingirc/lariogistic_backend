@@ -10,7 +10,7 @@ const { publicLimiter, registerLimiter, updateLimiter, passwordChangeLimiter, ad
  * /api/usuarios:
  *   get:
  *     summary: Listar todos los usuarios
- *     description: Devuelve una lista de todos los usuarios registrados. Solo accesible para administradores.
+ *     description: Devuelve una lista de todos los usuarios registrados. Si un gerente lo usa, solo muestra los empleados de su departamento.
  *     tags: [Usuarios]
  *     security:
  *       - bearerAuth: []
@@ -51,7 +51,7 @@ const { publicLimiter, registerLimiter, updateLimiter, passwordChangeLimiter, ad
  *               error: Demasiadas solicitudes, intenta de nuevo en 15 minutos
  *               code: 429
  */
-router.get('/', adminLimiter, authenticate, restrictTo(1), usuariosController.getAll);
+router.get('/', adminLimiter, authenticate, restrictTo(1, 2), usuariosController.getAll);
 
 /**
  * @swagger
