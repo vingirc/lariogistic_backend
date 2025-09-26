@@ -1,8 +1,3 @@
-// Guardar las configuraciones de Google OAuth
-// Agregar al .env:
-// GOOGLE_CLIENT_ID=your-google-client-id
-// GOOGLE_CLIENT_SECRET=your-google-client-secret
-
 const { validateEnv } = require('../utils/env');
 
 validateEnv(['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET']);
@@ -14,6 +9,5 @@ module.exports = {
     redirectUri: process.env.NODE_ENV === 'production'
       ? 'https://lariogistic-backend.vercel.app/api/auth/google/callback'
       : 'http://localhost:3000/api/auth/google/callback',
-    mobileRedirectUri: 'com.carsget.financiamiento:/oauthredirect',
   },
 };
