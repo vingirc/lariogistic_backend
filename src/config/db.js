@@ -13,17 +13,7 @@ try {
     database: process.env.DB_NAME,
     port: process.env.DB_PORT || 3306,
     waitForConnections: true,
-    connectionLimit: 5,
-    queueLimit: 0,
-    connectTimeout: 10000, // 10s timeout
-    acquireTimeout: 10000,
-    timezone: 'America/Mexico_City', // Set session time zone to CST
-    retry: { // Add retry logic
-      retries: 3,
-      factor: 2,
-      minTimeout: 1000,
-      maxTimeout: 5000,
-    },
+    connectionLimit: 5
   });
 
   console.log(`[${new Date().toISOString()}] Database pool initialized`);
