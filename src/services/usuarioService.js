@@ -73,7 +73,7 @@ const usuarioService = {
     return this.create({ nombre, email, password, googleId, idRol: 3 });
   },
 
-  async update(idUsuario, { nombre, telefono, direccion, password, idRol, estado }, isAdmin = false, adminId = null) {
+  async update(idUsuario, { nombre, telefono, direccion, password, idRol, estado, googleId }, isAdmin = false, adminId = null) {
     const user = await this.findById(idUsuario);
     if (!user) {
       throw new Error('Usuario no encontrado');
@@ -101,6 +101,10 @@ const usuarioService = {
       const hashedPassword = await bcrypt.hash(password, 12);
       updates.push('password = ?');
       values.push(hashedPassword);
+    }
+    if (googleId) {
+      updates.push('googleId = ?');
+      values.push(googleId);
     }
     // Only allow idRol and estado updates for non-admin users
     if (isAdmin && idRol && user.idRol !== 1) {
