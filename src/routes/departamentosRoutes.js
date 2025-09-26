@@ -76,7 +76,7 @@ const { publicLimiter, privateLimiter } = require('../middleware/rateLimit');
  *       429:
  *         description: Límite de tasa excedido
  */
-router.get('/', authenticate, restrictTo([1]), publicLimiter, departamentosController.getAll);
+router.get('/', authenticate, restrictTo(1), publicLimiter, departamentosController.getAll);
 
 /**
  * @swagger
@@ -123,7 +123,7 @@ router.get('/', authenticate, restrictTo([1]), publicLimiter, departamentosContr
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/:id', authenticate, restrictTo([1]), publicLimiter, departamentosController.getById);
+router.get('/:id', authenticate, restrictTo(1), publicLimiter, departamentosController.getById);
 
 /**
  * @swagger
@@ -180,7 +180,7 @@ router.get('/:id', authenticate, restrictTo([1]), publicLimiter, departamentosCo
  *       429:
  *         description: Límite de tasa excedido
  */
-router.post('/', authenticate, restrictTo([1]), privateLimiter, validateDepartamentoCreate, departamentosController.create);
+router.post('/', authenticate, restrictTo(1), privateLimiter, validateDepartamentoCreate, departamentosController.create);
 
 /**
  * @swagger
@@ -252,7 +252,7 @@ router.post('/', authenticate, restrictTo([1]), privateLimiter, validateDepartam
  *       429:
  *         description: Límite de tasa excedido
  */
-router.put('/:id', authenticate, restrictTo([1]), privateLimiter, validateDepartamentoUpdate, departamentosController.update);
+router.put('/:id', authenticate, restrictTo(1), privateLimiter, validateDepartamentoUpdate, departamentosController.update);
 
 /**
  * @swagger
@@ -301,6 +301,6 @@ router.put('/:id', authenticate, restrictTo([1]), privateLimiter, validateDepart
  *       429:
  *         description: Límite de tasa excedido
  */
-router.delete('/:id', authenticate, restrictTo([1]), privateLimiter, departamentosController.delete);
+router.delete('/:id', authenticate, restrictTo(1), privateLimiter, departamentosController.delete);
 
 module.exports = router;
